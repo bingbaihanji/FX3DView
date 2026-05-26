@@ -62,6 +62,8 @@ public class MenuNode {
     @Getter
     private final CheckMenuItem directionalLightToggle = new CheckMenuItem("方向光");
     @Getter
+    private final MenuItem clearModel = new MenuItem("清空");
+    @Getter
     private final MenuItem directionalLight = new MenuItem("方向光设置...");
 
     // 设置菜单 — 旋转引擎选择
@@ -120,11 +122,11 @@ public class MenuNode {
 
         // 添加菜单项
         file.getItems().addAll(importObj);
-        tools.getItems().addAll(screenshots, directionalLight);
+        tools.getItems().addAll(screenshots, clearModel, directionalLight);
         // 预设视角子菜单
         presetViewMenu.getItems().addAll(viewFront, viewBack, viewLeft, viewRight, viewTop, viewBottom);
 
-        directionalLightToggle.setSelected(true); // 方向光默认开启
+        directionalLightToggle.setSelected(false); // 方向光默认关闭
 
         // 设置菜单 — 旋转引擎
         engineQuaternion.setToggleGroup(engineGroup);

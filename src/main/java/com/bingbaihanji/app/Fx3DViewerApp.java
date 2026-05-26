@@ -77,7 +77,7 @@ public class Fx3DViewerApp extends WindowsThemeJavaFXApp {
         c.cameraSystem = new CameraSystem(rotationStrategy);
         c.viewingAxes = new ViewingAxes(180.0);
         c.lightManager = new LightManager(c.sceneManager.getWorld());
-        c.lightManager.attachToScene();
+        // 方向光默认关闭，不调用 attachToScene()，由用户通过菜单手动开启
         c.statusBar = new StatusBar(c.cameraSystem, c.sceneManager);
         c.modelInfoPanel = new ModelInfoPanel();
     }
@@ -215,8 +215,16 @@ public class Fx3DViewerApp extends WindowsThemeJavaFXApp {
         c.menuEvent.setupShadingModes(c.menuNode, c.sceneManager.getMoleculeGroup());
         c.menuEvent.menuToggleDirectionalLight(c.menuNode, c.lightManager);
         c.menuEvent.menuDirectionalLight(c.menuNode, c.lightManager);
+        c.menuEvent.menuClearModel(c.menuNode, c.sceneManager, () -> {
+            c.statusBar.updateModelStats();
+            c.modelInfoPanel.setVisible(false);
+            c.modelInfoPanel.setManaged(false);
+        });
         c.menuEvent.setupPresetViews(c.menuNode, c.cameraSystem, c.viewingAxes);
         c.menuEvent.menuToggleOrtho(c.menuNode, c.cameraSystem, subScene);
+        // 同步菜单勾选状态与相机实际投影模式（多视口切换等情况可能程序化切回透视）
+        c.cameraSystem.orthographicProperty().addListener((obs, old, isOrtho) ->
+                c.menuNode.getOrthoToggle().setSelected(isOrtho));
         c.menuEvent.menuResetView(c.menuNode, c.cameraSystem, c.viewingAxes, c.mainLayout);
         c.menuEvent.menuToggleMultiView(c.menuNode, c.mainLayout);
         c.menuEvent.setupRotationEngineMenu(c.menuNode, c.cameraSystem, c.viewingAxes,

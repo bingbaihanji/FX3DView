@@ -172,6 +172,8 @@ public class MainLayout {
         isMultiViewport = !isMultiViewport;
 
         if (isMultiViewport) {
+            // 正交投影模式下先强制切回透视投影，再进入多视口
+            cameraSystem.setPerspective(subScene);
             // 1. 将相机变换层级从主场景图移到视口 0（Camera 节点不能同时属于两个场景图）
             sceneManager.getRoot().getChildren().remove(cameraSystem.getCameraRootTransform());
             // 2. 释放主 SubScene 的相机引用（JavaFX Camera 只能属于一个 SubScene）

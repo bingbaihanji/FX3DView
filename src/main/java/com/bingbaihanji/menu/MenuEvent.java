@@ -2,6 +2,7 @@ package com.bingbaihanji.menu;
 
 import com.bingbaihanji.camera.CameraSystem;
 import com.bingbaihanji.camera.ViewPreset;
+import com.bingbaihanji.interaction.DragDropHandler;
 import com.bingbaihanji.lighting.LightManager;
 import com.bingbaihanji.rotation.MatrixRotation;
 import com.bingbaihanji.rotation.QuaternionRotation;
@@ -117,7 +118,7 @@ public class MenuEvent {
             File filePath = fileChooser.showOpenDialog(primaryStage);
 
             if (filePath != null) {
-                com.bingbaihanji.interaction.DragDropHandler.loadModelFile(
+                DragDropHandler.loadModelFile(
                         filePath, world, moleculeGroup, onModelLoaded,
                         task -> {
                             if (onTaskCreated != null) {
@@ -282,6 +283,30 @@ public class MenuEvent {
      */
     public void menuDirectionalLight(MenuNode menuNode, LightManager lightManager) {
         menuNode.getDirectionalLight().setOnAction(event -> lightManager.openControlDialog());
+    }
+
+    /**
+     * 清空模型菜单
+     * <p>
+     * 清空当前加载的模型、包围盒和法线可视化，
+     * 重置线框/背面剔除等内部状态。
+     * </p>
+     *
+     * @param menuNode     菜单节点
+     * @param sceneManager 场景管理器
+     * @param onCleared    清空后的UI更新回调（状态栏、信息面板等）
+     */
+    public void menuClearModel(MenuNode menuNode, Scene3DManager sceneManager, Runnable onCleared) {
+        menuNode.getClearModel().setOnAction(event -> {
+            sceneManager.clearModel();
+            // 重置内部状态
+            isDrawModeIsLINE = false;
+            isCullFace = false;
+            if (onCleared != null) {
+                onCleared.run();
+            }
+            log.info("模型已清空");
+        });
     }
 
     // ==================== 静态工具方法 ====================

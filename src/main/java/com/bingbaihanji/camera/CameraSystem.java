@@ -248,6 +248,17 @@ public class CameraSystem {
     }
 
     /**
+     * 强制切换到透视投影（如当前为正交投影则切换）
+     *
+     * @param subScene 当前 SubScene，用于恢复透视相机引用
+     */
+    public void setPerspective(SubScene subScene) {
+        if (orthographic.get()) {
+            toggleProjection(subScene);
+        }
+    }
+
+    /**
      * 是否为正交投影模式
      */
     public boolean isOrthographic() {

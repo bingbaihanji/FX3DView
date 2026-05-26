@@ -123,6 +123,20 @@ public class Scene3DManager {
     }
 
     /**
+     * 清空加载的模型
+     * <p>
+     * 清空 moleculeGroup 中的所有模型节点（保留 normalGroup），
+     * 清空包围盒，并隐藏法线可视化。
+     * </p>
+     */
+    public void clearModel() {
+        moleculeGroup.getChildren().clear();
+        moleculeGroup.getChildren().add(normalGroup);
+        boundingBoxGroup.getChildren().clear();
+        normalGroup.setVisible(false);
+    }
+
+    /**
      * 重建法线可视化
      * <p>
      * 法线组放在 moleculeGroup 内，确保与模型共享同一坐标空间。

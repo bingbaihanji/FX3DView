@@ -126,6 +126,7 @@ public class DragDropHandler {
         }
 
         Thread thread = new Thread(loadTask);
+        thread.setName("Load Model Thread");
         thread.setDaemon(true);
         thread.start();
         return loadTask;
