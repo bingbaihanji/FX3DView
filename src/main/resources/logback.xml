@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false">
+    <!-- 关闭 logback 内部状态输出，消除启动时的配置诊断日志 -->
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
+
+    <!-- 日志存放路径 -->
+    <property name="log.path" value="${user.dir}/logs"/>
+
+    <!-- 彩色控制台输出格式 -->
+    <property name="log.pattern"
+              value="%magenta(%d{yyyy-MM-dd HH:mm:ss.SSS}) %highlight(%-5level) --- %boldGreen([\t\t %thread]) \t: %cyan([%c.%method -> %line]) : %boldWhite(%msg%n)"/>
+
+    <!-- 文件输出格式（无颜色控制符） -->
+    <property name="file.pattern" value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level --- [%thread] %c.%M:[%L] : %m%n"/>
+
+    <!-- ==================== 控制台（彩色） ==================== -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${log.pattern}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- ==================== 按级别分文件滚动日志 ==================== -->
+    <appender name="file_info" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.path}/%d{yyyy-MM-dd}-info.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${file.pattern}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <appender name="file_debug" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.path}/%d{yyyy-MM-dd}-debug.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${file.pattern}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>DEBUG</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <appender name="file_warn" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.path}/%d{yyyy-MM-dd}-warn.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${file.pattern}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>WARN</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <appender name="file_error" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.path}/%d{yyyy-MM-dd}-error.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${file.pattern}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!-- 根日志：ALL 级别 → 由各 appender 的 LevelFilter 自行筛选 -->
+    <root level="ALL">
+        <appender-ref ref="console"/>
+        <appender-ref ref="file_info"/>
+        <appender-ref ref="file_debug"/>
+        <appender-ref ref="file_warn"/>
+        <appender-ref ref="file_error"/>
+    </root>
+
+    <!-- 特定包的日志级别（覆盖 root，这里保持 INFO 即可） -->
+    <logger name="com.bingbaihanji.loading" level="INFO"/>
+    <logger name="com.bingbaihanji.menu" level="INFO"/>
+    <logger name="com.bingbaihanji.matrix" level="INFO"/>
+    <logger name="com.bingbaihanji.quaternion" level="INFO"/>
+</configuration>

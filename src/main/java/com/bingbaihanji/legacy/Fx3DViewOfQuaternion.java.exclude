@@ -1,0 +1,571 @@
+package com.bingbaihanji.legacy;
+
+import com.bingbaihanji.WindowsThemeJavaFXApp;
+
+import com.bingbaihanji.handle.FXHandleController;
+import com.bingbaihanji.loading.Model3D;
+import com.bingbaihanji.loading.ObjImporter;
+import com.bingbaihanji.menu.MenuEvent;
+import com.bingbaihanji.menu.MenuNode;
+import com.bingbaihanji.quaternion.Quaternion;
+import com.bingbaihanji.quaternion.QuaternionArcBallUtils;
+import com.bingbaihanji.view.ViewingAxes;
+import com.bingbaihanji.world.GroupTransform;
+import javafx.animation.AnimationTimer;
+import javafx.collections.ObservableList;
+import javafx.geometry.Bounds;
+import javafx.scene.*;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.image.Image;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.PhongMaterial;
+import javafx.scene.shape.Box;
+import javafx.scene.shape.CullFace;
+import javafx.scene.shape.MeshView;
+import javafx.scene.transform.Affine;
+import javafx.scene.transform.Rotate;
+import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.net.URL;
+
+/**
+ * 基于四元数的3D模型查看器
+ * - 使用四元数替代旋转矩阵进行旋转计算
+ * - 避免万向节锁问题
+ * - 更平滑的旋转插值
+ * - 更好的数值稳定性
+ */
+public class Fx3DViewOfQuaternion extends WindowsThemeJavaFXApp {
+    private static final Logger log = LoggerFactory.getLogger(Fx3DViewOfQuaternion.class);
+    // 相机和3D场景的初始参数
+    private static final double CAMERA_INITIAL_DISTANCE = -20; // 初始相机距离
+    private static final double CAMERA_INITIAL_X_ANGLE = 0.0; // 初始相机X轴角度
+    private static final double CAMERA_INITIAL_Y_ANGLE = 0.0; // 初始相机Y轴角度
+    private static final double CAMERA_NEAR_CLIP = 0.5; // 相机近裁剪面
+    private static final double CAMERA_FAR_CLIP = 10000.0; // 相机远裁剪面
+    private static final double AXIS_LENGTH = 2.50; // 坐标轴长度
+    private static final double CONTROL_MULTIPLIER = 0.1; // 控制键倍增器
+    private static final double SHIFT_MULTIPLIER = 10.0; // Shift键倍增器
+    private static final double MOUSE_SPEED = 0.1; // 鼠标灵敏度
+    private static final double TRACK_SPEED = 0.3; // 平移速度
+    private static final double ROTATION_SPEED = 7.5; // 旋转速度控制
+    // 定义主要的3D场景组和相关变量
+    final Group root = new Group(); // 根节点
+    final GroupTransform axisGroup = new GroupTransform(); // 坐标轴组
+    final GroupTransform world = new GroupTransform(); // 世界组
+    final PerspectiveCamera camera = new PerspectiveCamera(true); // 透视相机
+    // 相机变换组（使用YZX旋转顺序）
+    final GroupTransform cameraGroupTransform = new GroupTransform(GroupTransform.RotateOrder.YZX);
+    final GroupTransform cameraGroupTransform2 = new GroupTransform(GroupTransform.RotateOrder.YZX);
+    final GroupTransform cameraGroupTransform3 = new GroupTransform(GroupTransform.RotateOrder.YZX);
+    // 场景基础尺寸
+    private final double SCENE_WIDTH = 800;
+    private final double SCENE_HEIGHT = 600;
+    private final Affine viewingRotate = new Affine();
+    // 相机旋转Affine
+    private final Affine cameraRotateAffine = new Affine();
+    // 复用四元数对象减少GC
+    private final Quaternion tempQuat1 = new Quaternion();
+    private final Quaternion tempQuat2 = new Quaternion();
+    private final Quaternion tempQuat3 = new Quaternion();
+    GroupTransform moleculeGroup = new GroupTransform(); // 模型组
+    // 鼠标位置变量
+    double mousePosX;
+    double mousePosY;
+    double mouseOldX;
+    double mouseOldY;
+    double mouseDeltaX;
+    double mouseDeltaY;
+    private ViewingAxes viewingAxes; // 辅助轴实例
+    private Canvas axesCanvas; // 辅助轴画布（2D）
+    // 使用四元数替代矩阵存储旋转状态
+    private Quaternion lastRotationQuaternion = Quaternion.identity();
+    // 旋转相关成员变量
+    private boolean isAutoRotating = false;
+    private AnimationTimer rotationTimer;
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+
+    /**
+     * 初始化相机系统
+     */
+    private void buildCamera() {
+        System.out.println("buildCamera() - 四元数版本");
+        root.getChildren().add(cameraGroupTransform);
+        cameraGroupTransform.getChildren().add(cameraGroupTransform2);
+        cameraGroupTransform2.getChildren().add(cameraGroupTransform3);
+        cameraGroupTransform3.getChildren().add(camera);
+
+        // 构建相机变换链
+        cameraGroupTransform.getTransforms().clear();
+        cameraGroupTransform.getTransforms().addAll(
+                cameraGroupTransform.translate,        // 平移
+                cameraGroupTransform.pivot,            // 旋转中心点
+                cameraRotateAffine,                    // 自定义旋转（四元数驱动）
+                cameraGroupTransform.s,                // 缩放
+                cameraGroupTransform.inversePivot      // 旋转中心点逆变换
+        );
+
+        // 相机参数初始化
+        camera.setNearClip(CAMERA_NEAR_CLIP);
+        camera.setFarClip(CAMERA_FAR_CLIP);
+        camera.setTranslateZ(CAMERA_INITIAL_DISTANCE);
+        cameraGroupTransform3.setRotateZ(180); // 相机朝向调整
+
+        // 初始旋转：使用四元数设置初始方向
+        double initXRad = Math.toRadians(CAMERA_INITIAL_X_ANGLE);
+        double initYRad = Math.toRadians(CAMERA_INITIAL_Y_ANGLE);
+
+        // 创建初始旋转四元数
+        Quaternion qx = Quaternion.fromEuler(initXRad, 0, 0);
+        Quaternion qy = Quaternion.fromEuler(0, initYRad, 0);
+        Quaternion initRot = Quaternion.multiply(qy, qx);
+
+        // 应用到Affine变换
+        QuaternionArcBallUtils.setRotationToAffine(cameraRotateAffine, initRot);
+        lastRotationQuaternion = initRot;
+    }
+
+    /**
+     * 构建坐标轴并设置自发光效果
+     */
+    private void buildAxes() {
+        axisGroup.getChildren().clear();
+
+        // X轴 - 红色
+        PhongMaterial redMaterial = new PhongMaterial(Color.ORANGERED);
+        Box xAxis = new Box(AXIS_LENGTH, 0.02, 0.02);
+        xAxis.setMaterial(redMaterial);
+
+        // Y轴 - 绿色
+        PhongMaterial greenMaterial = new PhongMaterial(Color.LIME);
+        Box yAxis = new Box(0.02, AXIS_LENGTH, 0.02);
+        yAxis.setMaterial(greenMaterial);
+
+        // Z轴 - 蓝色
+        PhongMaterial blueMaterial = new PhongMaterial(Color.DODGERBLUE);
+        Box zAxis = new Box(0.02, 0.02, AXIS_LENGTH);
+        zAxis.setMaterial(blueMaterial);
+
+        // 添加到坐标轴组
+        axisGroup.getChildren().addAll(xAxis, yAxis, zAxis);
+        axisGroup.setVisible(false); // 默认隐藏
+
+        // 将坐标轴添加到世界
+        world.getChildren().add(axisGroup);
+    }
+
+    /**
+     * 处理鼠标交互事件（基于四元数的ArcBall旋转）
+     */
+    private void handleMouse(SubScene scene) {
+        scene.setOnMousePressed(me -> {
+            mousePosX = me.getSceneX();
+            mousePosY = me.getSceneY();
+
+            // 保存当前旋转状态（四元数）
+            lastRotationQuaternion = QuaternionArcBallUtils.getRotationFromAffine(cameraRotateAffine);
+        });
+
+        scene.setOnMouseDragged(me -> {
+            // 更新鼠标位置
+            mouseOldX = mousePosX;
+            mouseOldY = mousePosY;
+            mousePosX = me.getSceneX();
+            mousePosY = me.getSceneY();
+
+            // 计算鼠标位移
+            mouseDeltaX = (mousePosX - mouseOldX);
+            mouseDeltaY = (mousePosY - mouseOldY);
+
+            if (me.isPrimaryButtonDown()) { // 左键旋转（ArcBall）
+                int width = (int) scene.getWidth();
+                int height = (int) scene.getHeight();
+
+                // 控制因子
+                double factor = me.isControlDown() ? CONTROL_MULTIPLIER : 1.0;
+
+                // 当前与上一帧的鼠标坐标
+                float currentX = (float) mousePosX;
+                float currentY = (float) mousePosY;
+                float prevX = (float) mouseOldX;
+                float prevY = (float) mouseOldY;
+
+                // 应用速度因子调整
+                float adjX = prevX + (currentX - prevX) * (float) factor;
+                float adjY = prevY - (currentY - prevY) * (float) factor; // Y轴翻转
+
+                // 使用四元数计算增量旋转
+                Quaternion deltaRot = QuaternionArcBallUtils.getArcBallRotationQuaternion(
+                        width, height, prevX, prevY, adjX, adjY);
+
+                // 应用阻尼效果（使用NLERP进行平滑）
+                float damping = 0.95f;
+                tempQuat1.set(0, 0, 0, 1); // 单位四元数
+                Quaternion.interpolate(tempQuat2, tempQuat1, deltaRot, damping);
+
+                // 累积旋转：新旋转 = 上次旋转 × 阻尼后的增量旋转
+                Quaternion newRot = Quaternion.multiply(lastRotationQuaternion, tempQuat2);
+//                System.out.println("Delta Rotation: " + deltaRot);
+                newRot.normalize();
+
+                // 应用到Affine变换
+                QuaternionArcBallUtils.setRotationToAffine(cameraRotateAffine, newRot);
+                lastRotationQuaternion = newRot;
+
+                // 同步更新辅助轴
+                viewingAxes.updateAxes(cameraRotateAffine);
+
+            } else if (me.isSecondaryButtonDown()) { // 右键平移
+                double factor = 1.0;
+                if (me.isControlDown()) factor = CONTROL_MULTIPLIER;
+                if (me.isShiftDown()) factor = SHIFT_MULTIPLIER;
+
+                cameraGroupTransform2.setTx(
+                        cameraGroupTransform2.translate.getX() + mouseDeltaX * MOUSE_SPEED * TRACK_SPEED * factor
+                );
+                cameraGroupTransform2.setTy(
+                        cameraGroupTransform2.translate.getY() + mouseDeltaY * MOUSE_SPEED * TRACK_SPEED * factor
+                );
+            }
+        });
+
+        // 鼠标滚轮缩放
+        scene.setOnScroll(scrollEvent -> {
+            double delta = scrollEvent.getDeltaY();
+            if (scrollEvent.isShiftDown() && delta == 0) {
+                delta = scrollEvent.getDeltaX();
+            }
+
+            double factor = 1.0;
+            if (scrollEvent.isControlDown()) factor = CONTROL_MULTIPLIER;
+            if (scrollEvent.isShiftDown()) factor = SHIFT_MULTIPLIER;
+
+            double newZ = camera.getTranslateZ() - delta * MOUSE_SPEED * 0.1 * factor;
+            camera.setTranslateZ(newZ);
+        });
+    }
+
+    /**
+     * 处理键盘事件
+     */
+    private void handleKeyboard(Scene scene) {
+        // 自动旋转动画
+        rotationTimer = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                // 每帧旋转角度（弧度）- 负值表示逆时针旋转
+                double angleRad = -Math.toRadians(ROTATION_SPEED * 0.016); // 假设60FPS
+
+                // 绕Y轴旋转（屏幕竖直方向）
+                Quaternion rotation = Quaternion.fromAxisAngle(0, 1, 0, angleRad);
+
+                // 累积旋转
+                lastRotationQuaternion = Quaternion.multiply(lastRotationQuaternion, rotation);
+                lastRotationQuaternion.normalize();
+
+                // 应用到Affine
+                QuaternionArcBallUtils.setRotationToAffine(cameraRotateAffine, lastRotationQuaternion);
+
+                // 更新坐标轴显示
+                viewingAxes.updateAxes(cameraRotateAffine);
+            }
+        };
+
+        scene.setOnKeyPressed(event -> {
+            switch (event.getCode()) {
+                case Z: // 重置相机位置和旋转
+                    resetCamera();
+                    break;
+                case X: // 显示/隐藏坐标轴
+                    axisGroup.setVisible(!axisGroup.isVisible());
+                    break;
+                case V: // 显示/隐藏模型
+                    moleculeGroup.setVisible(!moleculeGroup.isVisible());
+                    break;
+                case SPACE: // 空格控制自动旋转开关
+                    toggleAutoRotation();
+                    break;
+                case R: // R键随机旋转（演示四元数旋转）
+                    applyRandomRotation();
+                    break;
+            }
+        });
+    }
+
+    /**
+     * 重置相机到初始状态
+     */
+    private void resetCamera() {
+        // 重置平移
+        cameraGroupTransform2.translate.setX(0.0);
+        cameraGroupTransform2.translate.setY(0.0);
+        camera.setTranslateZ(CAMERA_INITIAL_DISTANCE);
+
+        // 重置旋转（使用四元数）
+        double initXRad = Math.toRadians(CAMERA_INITIAL_X_ANGLE);
+        double initYRad = Math.toRadians(CAMERA_INITIAL_Y_ANGLE);
+        Quaternion qx = Quaternion.fromEuler(initXRad, 0, 0);
+        Quaternion qy = Quaternion.fromEuler(0, initYRad, 0);
+        Quaternion initRot = Quaternion.multiply(qy, qx);
+
+        QuaternionArcBallUtils.setRotationToAffine(cameraRotateAffine, initRot);
+        lastRotationQuaternion = initRot;
+
+        viewingAxes.updateAxes(cameraRotateAffine); // 同步更新辅助轴
+
+        log.info("相机已重置");
+    }
+
+    /**
+     * 切换自动旋转状态
+     */
+    private void toggleAutoRotation() {
+        isAutoRotating = !isAutoRotating;
+        if (isAutoRotating) {
+            rotationTimer.start();
+            log.info("自动旋转已开启");
+        } else {
+            rotationTimer.stop();
+            log.info("自动旋转已关闭");
+        }
+    }
+
+    /**
+     * 应用随机旋转（演示四元数功能）
+     */
+    private void applyRandomRotation() {
+        // 生成随机轴和角度
+        float axisX = (float) (Math.random() * 2 - 1);
+        float axisY = (float) (Math.random() * 2 - 1);
+        float axisZ = (float) (Math.random() * 2 - 1);
+
+        // 归一化旋转轴
+        float length = (float) Math.sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ);
+        axisX /= length;
+        axisY /= length;
+        axisZ /= length;
+
+        // 随机角度（90度到270度之间）
+        double angle = Math.toRadians(90 + Math.random() * 180);
+
+        // 创建旋转四元数
+        Quaternion randomRot = Quaternion.fromAxisAngle(axisX, axisY, axisZ, angle);
+        System.out.println("随机旋转四元数: " + randomRot.toString());
+
+        // 应用旋转
+        lastRotationQuaternion = Quaternion.multiply(lastRotationQuaternion, randomRot);
+        lastRotationQuaternion.normalize();
+
+        QuaternionArcBallUtils.setRotationToAffine(cameraRotateAffine, lastRotationQuaternion);
+        viewingAxes.updateAxes(cameraRotateAffine);
+
+        log.info("应用随机旋转: 轴=[{},{},{}], 角度={}°",
+                String.format("%.2f", axisX),
+                String.format("%.2f", axisY),
+                String.format("%.2f", axisZ),
+                String.format("%.1f", Math.toDegrees(angle)));
+    }
+
+    /**
+     * 加载OBJ分子模型
+     */
+    private void buildObjMolecule() {
+        moleculeGroup.getChildren().clear();
+        System.out.println("buildObjMolecule() - 四元数版本");
+
+        ObjImporter importer = new ObjImporter();
+        try {
+            URL modelUrl = getClass().getResource("/objmodel/朝翼-沐浪倦姿.obj");
+            if (modelUrl == null) {
+                System.err.println("模型文件未找到！");
+                return;
+            }
+            Model3D load = importer.load(modelUrl);
+
+            Group model = new Group();
+
+            // 添加旋转修正
+            Rotate rotateFix = new Rotate(-180, Rotate.Z_AXIS);
+            model.getTransforms().add(rotateFix);
+
+            for (Node n : load.getMeshViews()) {
+                if (n instanceof MeshView) {
+                    ((MeshView) n).setCullFace(CullFace.NONE); // 禁用背面剔除
+                    model.getChildren().add(n);
+                }
+            }
+
+            moleculeGroup.getChildren().add(model);
+
+            // 计算模型的包围盒并居中
+            Bounds bounds = model.getBoundsInParent();
+            double centerX = (bounds.getMinX() + bounds.getMaxX()) / 2;
+            double centerY = (bounds.getMinY() + bounds.getMaxY()) / 2;
+            double centerZ = (bounds.getMinZ() + bounds.getMaxZ()) / 2;
+
+            moleculeGroup.setTranslate(-centerX, -centerY, -centerZ);
+
+        } catch (IOException e) {
+            System.err.println("Error loading model: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        world.getChildren().addAll(moleculeGroup);
+    }
+
+
+    /**
+     * 配置辅助轴画布属性
+     */
+    private void setupAxesCanvas() {
+        axesCanvas.setMouseTransparent(true); // 鼠标穿透
+        axesCanvas.setTranslateX(10);
+        axesCanvas.setTranslateY(-10);
+        axesCanvas.setStyle("-fx-background-color: rgba(255,255,255,0.8);");
+    }
+
+    /**
+     * 设置菜单功能
+     */
+    private void setupMenuFunctions(Stage primaryStage, MenuNode menuNode, SubScene subScene) {
+        // 导入3D模型
+        MenuEvent.import3DModel(primaryStage, menuNode, world, moleculeGroup);
+        // 截图功能
+        MenuEvent.screenshots(primaryStage, menuNode, subScene);
+        // 设置背景颜色
+        MenuEvent.setBackgroundColor(menuNode, subScene);
+        // 光照设置
+        MenuEvent.menuSetupLighting(menuNode, world);
+        // 线框模式
+        MenuEvent.menuSetDrawMode(menuNode, world);
+        // 点云模式
+        MenuEvent.menuSetDotPlots(menuNode, world);
+    }
+
+    private void setThemeScene(Stage primaryStage, SubScene subScene) {
+        if (isDark(primaryStage)) {
+            System.out.println("暗色");
+            subScene.setFill(Color.valueOf("#808080")); // 更新背景颜色
+        } else {
+            System.out.println("亮色");
+            subScene.setFill(Color.valueOf("#e6e6e6")); // 更新背景颜色
+        }
+    }
+
+
+    @Override
+    public void startWindowsThemeUI(Stage primaryStage) {
+        System.out.println("MoleculeSampleApp启动 - 四元数版本");
+
+        // 初始化场景图
+        root.getTransforms().setAll(viewingRotate);
+        root.getChildren().add(world);
+
+        buildCamera();
+        buildAxes();
+        // buildObjMolecule(); // 按需启用模型加载
+
+        // 创建主界面布局
+        BorderPane rootPane = new BorderPane();
+
+        // 初始化辅助轴
+        viewingAxes = new ViewingAxes(180.0);
+        axesCanvas = viewingAxes.getCanvas();
+        setupAxesCanvas();
+
+        // 创建3D子场景
+        SubScene subScene = new SubScene(root, SCENE_WIDTH, SCENE_HEIGHT, true, SceneAntialiasing.BALANCED);
+        subScene.setCamera(camera);
+        subScene.setFill(Color.valueOf("#808080"));
+
+        // 设置鼠标和键盘事件
+        handleMouse(subScene);
+
+        // 创建主面板
+        Pane pane = new Pane();
+        pane.setPrefSize(SCENE_WIDTH, SCENE_HEIGHT);
+        pane.getChildren().addAll(subScene, axesCanvas);
+
+        // 设置画布位置
+        axesCanvas.setLayoutX(15);
+        axesCanvas.setLayoutY(15);
+
+        // 绑定子场景大小
+        subScene.widthProperty().bind(pane.widthProperty());
+        subScene.heightProperty().bind(pane.heightProperty());
+
+        rootPane.setCenter(pane);
+
+        // 添加菜单
+        MenuNode menuNode = new MenuNode();
+        MenuBar menuBar = menuNode.getMenuBar();
+
+        // 添加切换主题的菜单
+        ObservableList<Menu> menus = menuBar.getMenus();
+        for (Menu menu : menus) {
+
+            if (menu.getGraphic() instanceof Label label) {
+                if (label.getText().equals("视图")) {
+                    MenuItem wTheme = new MenuItem("切换主题");
+                    wTheme.setOnAction(event -> {
+                        // 切换窗口标题栏主题
+                        toggleDarkTitleBar(primaryStage);
+                        // 切换菜单栏主题
+                        menuNode.toggleMenuTheme();
+                        // 设置背景颜色
+                        setThemeScene(primaryStage, subScene);
+
+                    });
+                    menu.getItems().add(wTheme);
+                    break;
+                }
+
+            }
+        }
+
+
+        rootPane.setTop(menuBar);
+
+        Scene scene = new Scene(rootPane);
+
+        // 手柄控制
+        FXHandleController handleController =
+                new FXHandleController(scene, cameraRotateAffine, cameraGroupTransform2, camera, viewingAxes,world);
+        handleController.start();
+
+        handleKeyboard(scene);
+
+        // 设置窗口图标
+        URL iconUrl = getClass().getResource("/icon.png");
+        if (iconUrl != null) {
+            primaryStage.getIcons().add(new Image(iconUrl.toString()));
+        } else {
+            System.err.println("窗口图标文件未找到！");
+        }
+
+        primaryStage.setTitle("Fx3DView - 四元数版本");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+
+        // 设置菜单功能
+        setupMenuFunctions(primaryStage, menuNode, subScene);
+
+        // 初始同步辅助轴
+        viewingAxes.updateAxes(cameraRotateAffine);
+
+        log.info("应用程序启动完成");
+    }
+
+}
