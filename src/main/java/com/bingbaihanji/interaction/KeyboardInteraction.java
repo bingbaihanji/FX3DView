@@ -2,6 +2,7 @@ package com.bingbaihanji.interaction;
 
 import com.bingbaihanji.animation.AutoRotationAnimation;
 import com.bingbaihanji.camera.CameraSystem;
+import com.bingbaihanji.core.Lifecycle;
 import com.bingbaihanji.scene.Scene3DManager;
 import com.bingbaihanji.view.ViewingAxes;
 import javafx.scene.Scene;
@@ -22,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author bingbaihanji
  */
 @Slf4j
-public class KeyboardInteraction {
+public class KeyboardInteraction implements Lifecycle {
 
     private final CameraSystem cameraSystem;
     private final Scene3DManager sceneManager;
@@ -94,6 +95,16 @@ public class KeyboardInteraction {
      */
     public void setOnMultiViewportToggle(Runnable action) {
         this.onMultiViewportToggle = action;
+    }
+
+    @Override
+    public void stop() {
+        autoRotation.stop();
+    }
+
+    @Override
+    public void dispose() {
+        autoRotation.dispose();
     }
 
     /**

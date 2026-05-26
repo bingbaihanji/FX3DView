@@ -24,12 +24,23 @@ import java.util.Map.Entry;
 import java.util.function.BiConsumer;
 
 /**
- * object loader
+ * OBJ 格式3D模型导入器
+ * <p>
+ * 实现 {@link Importer} 接口，将 Wavefront OBJ 文件解析为 JavaFX {@link TriangleMesh}
+ * 或 {@link com.bingbaihanji.loading.PolygonMesh}。支持进度回调和中断取消，
+ * 进度回调接口 {@link Importer.ProgressCallback} 定义在父接口中。
+ * </p>
+ * <p>
+ * 注册到 {@link ImporterRegistry} 时使用 {@code ObjImporter::new} 工厂方法，
+ * 每次调用返回新实例以避免多线程共享可变状态。
+ * </p>
+ *
+ * @author bingbaihanji
  */
 @Slf4j
 public class ObjImporter implements Importer {
 
-    private static final String SUPPORTED_EXT = "obj";
+    public static final String SUPPORTED_EXT = "obj";
     /**
      * 是否开启调试日志（实例级，线程安全）
      */
@@ -74,7 +85,7 @@ public class ObjImporter implements Importer {
     /**
      * 加载 OBJ 文件并报告进度（支持取消）
      * <p>
-     * 通过 {@link ProgressCallback} 回调解析进度（0.0~1.0），
+     * 通过 {@link Importer.ProgressCallback} 回调解析进度（0.0~1.0），
      * 可通过 {@link Thread#interrupt()} 取消加载。
      * </p>
      *
@@ -83,7 +94,8 @@ public class ObjImporter implements Importer {
      * @return 加载后的模型数据
      * @throws IOException 如果加载失败或被取消
      */
-    public Model3D load(URL url, ProgressCallback callback) throws IOException {
+    @Override
+    public Model3D load(URL url, Importer.ProgressCallback callback) throws IOException {
         return read(url, false, callback);
     }
 
@@ -95,7 +107,7 @@ public class ObjImporter implements Importer {
      * @return 加载后的多边形模型数据
      * @throws IOException 如果加载失败或被取消
      */
-    public Model3D loadAsPoly(URL url, ProgressCallback callback) throws IOException {
+    public Model3D loadAsPoly(URL url, Importer.ProgressCallback callback) throws IOException {
         return read(url, true, callback);
     }
 
@@ -118,7 +130,7 @@ public class ObjImporter implements Importer {
      * @return 解析后的模型
      * @throws IOException 读取失败或被取消
      */
-    private ObjModel read(URL url, boolean asPolygon, ProgressCallback callback) throws IOException {
+    private ObjModel read(URL url, boolean asPolygon, Importer.ProgressCallback callback) throws IOException {
         log("Reading from URL: " + url + " as polygon: " + asPolygon);
 
         ObjModel model = asPolygon
@@ -129,7 +141,7 @@ public class ObjImporter implements Importer {
         long contentLength = conn.getContentLengthLong();
 
         try (InputStream is = conn.getInputStream();
-             BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+             BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8), 65536)) {
 
             String line;
             long bytesEstimate = 0;
@@ -179,18 +191,6 @@ public class ObjImporter implements Importer {
         model.loadComplete();
 
         return model;
-    }
-
-    /**
-     * OBJ 加载进度回调接口（函数式接口）
-     * <p>
-     * 在解析过程中定期回调，progress 范围为 0.0~1.0，
-     * status 为当前阶段描述文本
-     * </p>
-     */
-    @FunctionalInterface
-    public interface ProgressCallback {
-        void onProgress(double progress, String status);
     }
 
     private static class ObjModel extends Model3D {

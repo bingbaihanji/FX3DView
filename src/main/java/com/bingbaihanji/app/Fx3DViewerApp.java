@@ -8,6 +8,8 @@ import com.bingbaihanji.interaction.KeyboardInteraction;
 import com.bingbaihanji.interaction.MouseInteraction;
 import com.bingbaihanji.interaction.PickingController;
 import com.bingbaihanji.lighting.LightManager;
+import com.bingbaihanji.loading.ImporterRegistry;
+import com.bingbaihanji.loading.ObjImporter;
 import com.bingbaihanji.menu.MenuEvent;
 import com.bingbaihanji.menu.MenuNode;
 import com.bingbaihanji.rotation.RotationStrategy;
@@ -80,6 +82,10 @@ public class Fx3DViewerApp extends WindowsThemeJavaFXApp {
         // 方向光默认关闭，不调用 attachToScene()，由用户通过菜单手动开启
         c.statusBar = new StatusBar(c.cameraSystem, c.sceneManager);
         c.modelInfoPanel = new ModelInfoPanel();
+
+        // 创建导入器注册表并注册 OBJ 格式（新增格式在此注册即可）
+        c.importerRegistry = new ImporterRegistry();
+        c.importerRegistry.register(ObjImporter.SUPPORTED_EXT, ObjImporter::new);
     }
 
     /**
@@ -128,7 +134,8 @@ public class Fx3DViewerApp extends WindowsThemeJavaFXApp {
         c.dragDrop = new DragDropHandler(
                 c.sceneManager.getWorld(), c.sceneManager.getMoleculeGroup(),
                 this::onModelLoaded,
-                task -> c.statusBar.bindToLoadingTask(task));
+                task -> c.statusBar.bindToLoadingTask(task),
+                c.importerRegistry);
         c.dragDrop.attachToPane(c.mainLayout.getCenterPane());
     }
 
@@ -202,7 +209,8 @@ public class Fx3DViewerApp extends WindowsThemeJavaFXApp {
         c.menuEvent.import3DModel(primaryStage, c.menuNode,
                 c.sceneManager.getWorld(), c.sceneManager.getMoleculeGroup(),
                 this::onModelLoaded,
-                task -> c.statusBar.bindToLoadingTask(task));
+                task -> c.statusBar.bindToLoadingTask(task),
+                c.importerRegistry);
         c.menuEvent.screenshots(primaryStage, c.menuNode, subScene);
         c.menuEvent.setBackgroundColor(c.menuNode, subScene);
         c.menuEvent.menuSetupLighting(c.menuNode, c.sceneManager.getWorld(), c.mainLayout);
@@ -248,13 +256,17 @@ public class Fx3DViewerApp extends WindowsThemeJavaFXApp {
     }
 
     /**
-     * 设置迷你轴旋转同步回调（拖拽旋转时同步视口 0 的迷你坐标轴）
+     * 设置拖拽旋转后的同步回调（迷你轴 + 点云 billboard）
      */
     private void setupMiniAxesSync() {
         c.mouseInteraction.setOnRotationUpdated(() -> {
+            // 同步迷你轴
             if (c.mainLayout.isMultiViewport() && c.mainLayout.getMultiViewportLayout() != null) {
                 c.mainLayout.getMultiViewportLayout().syncViewport0MiniAxes();
             }
+            // 刷新点云 billboard 方向，使其始终面朝相机
+            c.menuEvent.refreshPointCloud(
+                    c.cameraSystem.getRotationStrategy().getRotationAffine());
         });
     }
 

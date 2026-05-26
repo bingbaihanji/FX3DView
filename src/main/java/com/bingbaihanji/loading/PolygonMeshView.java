@@ -58,16 +58,16 @@ public class PolygonMeshView extends Parent {
      *
      * @defaultValue 0
      */
-    private SimpleIntegerProperty subdivisionLevelProperty;    private final ArrayChangeListener<ObservableFloatArray> meshPointsListener = (t, bln, i, i1) -> {
-        pointsDirty = true;
-        updateMesh();
-    };
+    private SimpleIntegerProperty subdivisionLevelProperty;
     /**
      * Texture mapping boundary rule for Catmull Clark subdivision applied to the mesh
      *
      * @defaultValue BoundaryMode.CREASE_EDGES
      */
-    private SimpleObjectProperty<SubdivisionMesh.BoundaryMode> boundaryMode;
+    private SimpleObjectProperty<SubdivisionMesh.BoundaryMode> boundaryMode;    private final ArrayChangeListener<ObservableFloatArray> meshPointsListener = (t, bln, i, i1) -> {
+        pointsDirty = true;
+        updateMesh();
+    };
     /**
      * Texture mapping smoothness option for Catmull Clark subdivision applied to the mesh
      *
@@ -123,10 +123,7 @@ public class PolygonMeshView extends Parent {
 
     public final void setDrawMode(DrawMode value) {
         drawModeProperty().set(value);
-    }    private final ArrayChangeListener<ObservableFloatArray> meshTexCoordListener = (t, bln, i, i1) -> {
-        texCoordsDirty = true;
-        updateMesh();
-    };
+    }
 
     public final ObjectProperty<DrawMode> drawModeProperty() {
         if (drawMode == null) {
@@ -144,7 +141,10 @@ public class PolygonMeshView extends Parent {
 
     public final CullFace getCullFace() {
         return cullFace == null ? CullFace.BACK : cullFace.get();
-    }
+    }    private final ArrayChangeListener<ObservableFloatArray> meshTexCoordListener = (t, bln, i, i1) -> {
+        texCoordsDirty = true;
+        updateMesh();
+    };
 
     public final void setCullFace(CullFace value) {
         cullFaceProperty().set(value);

@@ -4,6 +4,7 @@ import com.bingbaihanji.camera.CameraSystem;
 import com.bingbaihanji.camera.ViewPreset;
 import com.bingbaihanji.interaction.DragDropHandler;
 import com.bingbaihanji.lighting.LightManager;
+import com.bingbaihanji.loading.ImporterRegistry;
 import com.bingbaihanji.rotation.MatrixRotation;
 import com.bingbaihanji.rotation.QuaternionRotation;
 import com.bingbaihanji.scene.Scene3DManager;
@@ -16,11 +17,13 @@ import javafx.scene.SubScene;
 import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.MeshView;
+import javafx.scene.transform.Affine;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
+import java.util.StringJoiner;
 import java.util.function.Consumer;
 
 /**
@@ -105,16 +108,46 @@ public class MenuEvent {
     }
 
     /**
-     * 导入3D模型（含进度回调）
+     * 导入3D模型（含进度回调，动态构建文件过滤器）
+     * <p>
+     * FileChooser 的扩展过滤器从 {@link ImporterRegistry} 动态生成，
+     * 新增文件格式只需在注册表中注册即可自动出现在菜单导入对话框中。
+     * </p>
+     *
+     * @param primaryStage  主舞台
+     * @param menuNode      菜单节点
+     * @param world         世界Group
+     * @param moleculeGroup 模型Group
+     * @param onModelLoaded 模型加载完成回调
+     * @param onTaskCreated 加载任务创建回调
+     * @param registry      导入器注册表，按扩展名获取 Importer
      */
     public void import3DModel(Stage primaryStage, MenuNode menuNode,
                               Group world, Group moleculeGroup,
                               Runnable onModelLoaded,
-                              Consumer<Task<?>> onTaskCreated) {
+                              Consumer<Task<?>> onTaskCreated,
+                              ImporterRegistry registry) {
         menuNode.getImportObj().setOnAction(event -> {
             FileChooser fileChooser = new FileChooser();
-            fileChooser.getExtensionFilters().add(
-                    new FileChooser.ExtensionFilter("Wavefront OBJ (*.obj)", "*.obj"));
+
+            // 从注册表动态构建扩展过滤器
+            for (String ext : registry.getSupportedExtensions()) {
+                String upperExt = ext.toUpperCase();
+                fileChooser.getExtensionFilters().add(
+                        new FileChooser.ExtensionFilter(upperExt + " 文件 (*." + ext + ")", "*." + ext));
+            }
+
+            // 构建"所有支持格式"聚合过滤器
+            StringJoiner patternJoiner = new StringJoiner(", ");
+            StringJoiner nameJoiner = new StringJoiner(", ");
+            for (String ext : registry.getSupportedExtensions()) {
+                patternJoiner.add("*." + ext);
+                nameJoiner.add(ext.toUpperCase());
+            }
+            fileChooser.getExtensionFilters().add(0,
+                    new FileChooser.ExtensionFilter("所有支持的3D格式 (" + nameJoiner + ")",
+                            patternJoiner.toString()));
+
             File filePath = fileChooser.showOpenDialog(primaryStage);
 
             if (filePath != null) {
@@ -124,7 +157,8 @@ public class MenuEvent {
                             if (onTaskCreated != null) {
                                 onTaskCreated.accept(task);
                             }
-                        });
+                        },
+                        registry);
             }
         });
     }
@@ -154,6 +188,18 @@ public class MenuEvent {
      */
     public void menuSetDotPlots(MenuNode menuNode, Group world) {
         menuNode.getPlotsMode().setOnAction(event -> pointCloudHandler.toggleDotPlots(world));
+    }
+
+    /**
+     * 根据相机旋转刷新点云 billboard 方向
+     * <p>
+     * 仅在点云模式下生效，由相机旋转回调驱动。
+     * </p>
+     *
+     * @param cameraAffine 当前相机旋转仿射
+     */
+    public void refreshPointCloud(Affine cameraAffine) {
+        pointCloudHandler.refreshPointCloud(cameraAffine);
     }
 
     /**

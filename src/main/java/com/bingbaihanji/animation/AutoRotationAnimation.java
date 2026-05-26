@@ -1,6 +1,7 @@
 package com.bingbaihanji.animation;
 
 import com.bingbaihanji.camera.CameraSystem;
+import com.bingbaihanji.core.Lifecycle;
 import com.bingbaihanji.interaction.InteractionConfig;
 import com.bingbaihanji.view.ViewingAxes;
 import javafx.animation.AnimationTimer;
@@ -15,12 +16,12 @@ import lombok.extern.slf4j.Slf4j;
  * @author bingbaihanji
  */
 @Slf4j
-public class AutoRotationAnimation {
+public class AutoRotationAnimation implements Lifecycle {
 
     private final CameraSystem cameraSystem;
     private final ViewingAxes viewingAxes;
     private final AnimationTimer timer;
-    private boolean isRunning = false;
+    private volatile boolean isRunning = false;
     /**
      * 上一帧时间戳（纳秒），用于计算真实帧间隔
      */
@@ -52,6 +53,15 @@ public class AutoRotationAnimation {
         };
     }
 
+    @Override
+    public void start() {
+        if (!isRunning) {
+            isRunning = true;
+            lastNow = 0;
+            timer.start();
+        }
+    }
+
     /**
      * 切换自动旋转状态
      */
@@ -65,6 +75,11 @@ public class AutoRotationAnimation {
             timer.stop();
             log.info("自动旋转已关闭");
         }
+    }
+
+    @Override
+    public void dispose() {
+        stop();
     }
 
     /**

@@ -6,6 +6,7 @@ import com.bingbaihanji.interaction.KeyboardInteraction;
 import com.bingbaihanji.interaction.MouseInteraction;
 import com.bingbaihanji.interaction.PickingController;
 import com.bingbaihanji.lighting.LightManager;
+import com.bingbaihanji.loading.ImporterRegistry;
 import com.bingbaihanji.menu.MenuEvent;
 import com.bingbaihanji.menu.MenuNode;
 import com.bingbaihanji.scene.Scene3DManager;
@@ -37,4 +38,5 @@ class ViewerComponents {
     ModelInfoPanel modelInfoPanel;
     MenuNode menuNode;
     DragDropHandler dragDrop;
+    ImporterRegistry importerRegistry;
 }

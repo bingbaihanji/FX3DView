@@ -1,6 +1,7 @@
 package com.bingbaihanji.ui;
 
 import com.bingbaihanji.camera.CameraSystem;
+import com.bingbaihanji.core.Lifecycle;
 import com.bingbaihanji.scene.Scene3DManager;
 import javafx.animation.AnimationTimer;
 import javafx.concurrent.Task;
@@ -23,7 +24,7 @@ import javafx.scene.text.Font;
 /**
  * 状态栏：底部显示FPS、模型统计、相机位置、旋转策略、加载进度
  */
-public class StatusBar extends HBox {
+public class StatusBar extends HBox implements Lifecycle {
 
     private static final double UPDATE_INTERVAL_NS = 200_000_000.0; // 200ms
     private static final Font STATUS_FONT = new Font("System", 11);
@@ -52,7 +53,7 @@ public class StatusBar extends HBox {
     /**
      * 当前绑定的加载任务（用于取消操作）
      */
-    private Task<?> currentTask;
+    private volatile Task<?> currentTask;
 
     public StatusBar(CameraSystem cameraSystem, Scene3DManager sceneManager) {
         this.cameraSystem = cameraSystem;
@@ -172,6 +173,17 @@ public class StatusBar extends HBox {
 
     // ==================== 主题 ====================
 
+    @Override
+    public void start() {
+        fpsTimer.start();
+    }
+
+    @Override
+    public void stop() {
+        fpsTimer.stop();
+    }
+
+    @Override
     public void dispose() {
         fpsTimer.stop();
     }

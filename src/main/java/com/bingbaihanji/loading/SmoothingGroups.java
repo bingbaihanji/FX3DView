@@ -1,5 +1,6 @@
 package com.bingbaihanji.loading;
 
+import com.bingbaihanji.matrix.Vector3;
 import javafx.scene.shape.TriangleMesh;
 
 import java.util.*;
@@ -10,7 +11,7 @@ import java.util.*;
  */
 public class SmoothingGroups {
     // 法线夹角的余弦阈值（对应2度夹角），点积结果大于该值则认为两个法线方向足够接近
-    private static final float normalAngle = 0.9994f; // cos(2°)
+    private static final double normalAngle = 0.9994; // cos(2°)
 
     // 标记已处理过的面的位集合
     private final BitSet visited;
@@ -54,17 +55,17 @@ public class SmoothingGroups {
      * @param n2 第二个法线向量
      * @return true=法线方向足够接近，false=法线方向差异较大
      */
-    private static boolean isNormalsEqual(Vec3f n1, Vec3f n2) {
+    private static boolean isNormalsEqual(Vector3 n1, Vector3 n2) {
         // 过滤特殊的"未锁定"法线值（1.0e20f为自定义的无效标记）
         if (n1.x == 1.0e20f || n1.y == 1.0e20f || n1.z == 1.0e20f
                 || n2.x == 1.0e20f || n2.y == 1.0e20f || n2.z == 1.0e20f) {
             return false;
         }
         // 法线向量归一化（转为单位向量），确保点积结果仅反映方向
-        Vec3f myN1 = new Vec3f(n1);
-        myN1.normalize();
-        Vec3f myN2 = new Vec3f(n2);
-        myN2.normalize();
+        Vector3 myN1 = new Vector3(n1);
+        myN1.normalizeLocal();
+        Vector3 myN2 = new Vector3(n2);
+        myN2.normalizeLocal();
         // 计算点积并与阈值比较：点积越大，法线方向越接近
         return myN1.dot(myN2) >= normalAngle;
     }
@@ -211,10 +212,10 @@ public class SmoothingGroups {
      * 根据法线索引从法线数组中获取三维法线向量
      *
      * @param index 法线索引
-     * @return 三维法线向量（Vec3f对象）
+     * @return 三维法线向量（Vector3对象）
      */
-    Vec3f getNormal(int index) {
-        return new Vec3f(normals[index * 3], normals[index * 3 + 1], normals[index * 3 + 2]);
+    Vector3 getNormal(int index) {
+        return new Vector3(normals[index * 3], normals[index * 3 + 1], normals[index * 3 + 2]);
     }
 
     /**

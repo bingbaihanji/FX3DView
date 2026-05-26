@@ -55,6 +55,18 @@ public final class Vector3 {
     }
 
     /**
+     * 拷贝构造函数，从已有的 Vector3 实例创建副本
+     *
+     * @param other 要拷贝的向量
+     */
+    public Vector3(Vector3 other) {
+        Objects.requireNonNull(other, "源向量不能为空");
+        this.x = other.x;
+        this.y = other.y;
+        this.z = other.z;
+    }
+
+    /**
      * 工厂方法，创建3D向量实例
      */
     public static Vector3 of(double x, double y, double z) {
