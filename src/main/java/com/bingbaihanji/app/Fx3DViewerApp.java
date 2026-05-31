@@ -12,6 +12,7 @@ import com.bingbaihanji.loading.ImporterRegistry;
 import com.bingbaihanji.loading.ObjImporter;
 import com.bingbaihanji.menu.MenuEvent;
 import com.bingbaihanji.menu.MenuNode;
+import com.bingbaihanji.rotation.QuaternionRotation;
 import com.bingbaihanji.rotation.RotationStrategy;
 import com.bingbaihanji.scene.Scene3DManager;
 import com.bingbaihanji.ui.MainLayout;
@@ -46,6 +47,13 @@ public class Fx3DViewerApp extends WindowsThemeJavaFXApp {
     private final RotationStrategy rotationStrategy;
     private final String windowTitle;
     private final ViewerComponents c = new ViewerComponents();
+
+    /**
+     * 无参构造器，供 GraalVM native-image 反射实例化使用
+     */
+    public Fx3DViewerApp() {
+        this(new QuaternionRotation(), "Fx3DView");
+    }
 
     public Fx3DViewerApp(RotationStrategy rotationStrategy, String windowTitle) {
         this.rotationStrategy = rotationStrategy;
