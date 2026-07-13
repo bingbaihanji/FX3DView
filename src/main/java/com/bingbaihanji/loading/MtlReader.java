@@ -10,7 +10,8 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
@@ -60,8 +61,10 @@ public class MtlReader {
             entry("refl ", (l, m) -> m.parseIgnore("反射贴图 (refl)")),
             entry("map_aat ", (l, m) -> m.parseIgnore("抗锯齿 (map_aat)")));
 
-    // 基础URL路径，用于构建纹理图片的完整路径
-    private final String baseUrl;
+    /**
+     * MTL 文件所在目录，用于解析相对纹理路径。
+     */
+    private final URI baseUri;
     // 存储解析后的材质：材质名称 -> 材质对象
     private final Map<String, Material> materials = new HashMap<>();
     // 记录当前材质已解析的属性，避免重复解析
@@ -76,23 +79,25 @@ public class MtlReader {
      * @param parentUrl 材质文件所在的父 URL。
      */
     public MtlReader(String filename, String parentUrl) {
-        // 提取父 URL 目录路径
-        baseUrl = parentUrl.substring(0, parentUrl.lastIndexOf('/') + 1);
-        // 构建材质文件的完整 URL
-        String fileUrl = baseUrl + filename;
+        baseUri = resolveBaseUri(parentUrl);
+        URI mtlUri = resolveAsset(filename);
 
         // 输出读取材质信息的日志
-        log.info("正在读取材质文件: {}", fileUrl);
+        log.info("正在读取材质文件: {}", mtlUri);
 
         // 尝试打开材质文件并读取其内容
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(fileUrl).openStream(), StandardCharsets.UTF_8))) {
-            reader.lines()
-                    .map(String::trim) // 去除前后空格
-                    .filter(l -> !l.isEmpty() && !l.startsWith("#")) // 忽略空行和注释行
-                    .forEach(this::parseLine); // 逐行解析材质文件
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(mtlUri.toURL().openStream(), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String trimmed = line.trim();
+                if (!trimmed.isEmpty() && !trimmed.startsWith("#")) {
+                    parseLine(trimmed);
+                }
+            }
         } catch (IOException e) {
             // 如果文件读取过程中发生异常，输出警告信息
-            log.warn("无法加载材质文件: {}", fileUrl, e);
+            log.warn("无法加载材质文件: {}", mtlUri, e);
         }
     }
 
@@ -204,14 +209,52 @@ public class MtlReader {
      */
     private Image loadImage(String filename) {
         try {
-            String imageUrl = baseUrl + filename.trim();
-            log.info("加载图片: {}", imageUrl);
-            return new Image(imageUrl);
+            URI imageUri = resolveAsset(extractTexturePath(filename));
+            log.info("加载图片: {}", imageUri);
+            return new Image(imageUri.toString());
         } catch (Exception e) {
             log.warn("图片加载失败: {} - {}", filename, e.getMessage());
             return null; // 返回null表示加载失败
         }
     }
+
+    private static URI resolveBaseUri(String parentUrl) {
+        URI parent = URI.create(parentUrl);
+        String text = parent.toString();
+        int slash = text.lastIndexOf('/');
+        if (slash < 0) {
+            return parent;
+        }
+        return URI.create(text.substring(0, slash + 1));
+    }
+
+    private URI resolveAsset(String rawPath) {
+        String normalized = rawPath.trim().replace('\\', '/');
+        try {
+            return baseUri.resolve(new URI(null, null, normalized, null));
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("资源路径无效: " + rawPath, e);
+        }
+    }
+
+    /**
+     * MTL 贴图语句可能带有 -s/-o/-bm 等选项；当前只提取最后的路径部分。
+     */
+    private static String extractTexturePath(String value) {
+        String trimmed = value.trim();
+        if (!trimmed.startsWith("-")) {
+            return trimmed;
+        }
+
+        String[] parts = trimmed.split("\\s+");
+        for (int i = parts.length - 1; i >= 0; i--) {
+            if (!parts[i].startsWith("-")) {
+                return parts[i];
+            }
+        }
+        return trimmed;
+    }
+
 
     /**
      * 获取解析后的所有材质

@@ -69,7 +69,9 @@ public class PickingController {
     // 恢复选中的 Mesh
     public void restorePickedMesh() {
 
-        if (pickedMesh == null) return;
+        if (pickedMesh == null) {
+            return;
+        }
 
         if (pickedOldMaterial != null) {
             pickedMesh.setMaterial(pickedOldMaterial);
@@ -96,7 +98,9 @@ public class PickingController {
     // Shift + 左键 → 切换网格状态
     public void togglePickedWireframe() {
 
-        if (pickedMesh == null) return;
+        if (pickedMesh == null) {
+            return;
+        }
 
         if (!pickedWireframe) {
 

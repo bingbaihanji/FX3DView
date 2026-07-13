@@ -331,8 +331,9 @@ public class SymbolicSubdivisionBuilder {
         public boolean isBoundary() {
             for (Edge edge : edges) {
                 EdgeInfo edgeInfo = edgeInfos.get(edge);
-                if (edgeInfo.isBoundary())
+                if (edgeInfo.isBoundary()) {
                     return true;
+                }
             }
             return false;
         }
@@ -343,8 +344,9 @@ public class SymbolicSubdivisionBuilder {
         public boolean hasInternalEdge() {
             for (Edge edge : edges) {
                 EdgeInfo edgeInfo = edgeInfos.get(edge);
-                if (!edgeInfo.isBoundary())
+                if (!edgeInfo.isBoundary()) {
                     return true;
+                }
             }
             return false;
         }

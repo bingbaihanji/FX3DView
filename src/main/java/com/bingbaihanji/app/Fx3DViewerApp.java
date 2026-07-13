@@ -9,6 +9,7 @@ import com.bingbaihanji.interaction.MouseInteraction;
 import com.bingbaihanji.interaction.PickingController;
 import com.bingbaihanji.lighting.LightManager;
 import com.bingbaihanji.loading.ImporterRegistry;
+import com.bingbaihanji.loading.ModelLoadService;
 import com.bingbaihanji.loading.ObjImporter;
 import com.bingbaihanji.menu.MenuEvent;
 import com.bingbaihanji.menu.MenuNode;
@@ -94,6 +95,13 @@ public class Fx3DViewerApp extends WindowsThemeJavaFXApp {
         // 创建导入器注册表并注册 OBJ 格式（新增格式在此注册即可）
         c.importerRegistry = new ImporterRegistry();
         c.importerRegistry.register(ObjImporter.SUPPORTED_EXT, ObjImporter::new);
+        c.modelLoadService = new ModelLoadService(
+                c.sceneManager.getWorld(),
+                c.sceneManager.getMoleculeGroup(),
+                c.importerRegistry,
+                this::beforeModelInstall,
+                this::onModelLoaded,
+                task -> c.statusBar.bindToLoadingTask(task));
     }
 
     /**
@@ -139,12 +147,16 @@ public class Fx3DViewerApp extends WindowsThemeJavaFXApp {
      * 绑定拖放加载（含进度条绑定）
      */
     private void attachDragDrop() {
-        c.dragDrop = new DragDropHandler(
-                c.sceneManager.getWorld(), c.sceneManager.getMoleculeGroup(),
-                this::onModelLoaded,
-                task -> c.statusBar.bindToLoadingTask(task),
-                c.importerRegistry);
+        c.dragDrop = new DragDropHandler(c.modelLoadService, c.importerRegistry);
         c.dragDrop.attachToPane(c.mainLayout.getCenterPane());
+    }
+
+    /**
+     * 安装新模型前清理依赖旧模型节点的可视化状态。
+     */
+    private void beforeModelInstall() {
+        c.menuEvent.resetModelVisualization(
+                c.menuNode, c.sceneManager.getMoleculeGroup(), c.sceneManager.getWorld());
     }
 
     /**
@@ -215,15 +227,13 @@ public class Fx3DViewerApp extends WindowsThemeJavaFXApp {
     private void setupMenuFunctions(Stage primaryStage) {
         SubScene subScene = c.mainLayout.getSubScene();
         c.menuEvent.import3DModel(primaryStage, c.menuNode,
-                c.sceneManager.getWorld(), c.sceneManager.getMoleculeGroup(),
-                this::onModelLoaded,
-                task -> c.statusBar.bindToLoadingTask(task),
+                c.modelLoadService,
                 c.importerRegistry);
         c.menuEvent.screenshots(primaryStage, c.menuNode, subScene);
         c.menuEvent.setBackgroundColor(c.menuNode, subScene);
         c.menuEvent.menuSetupLighting(c.menuNode, c.sceneManager.getWorld(), c.mainLayout);
-        c.menuEvent.menuSetDrawMode(c.menuNode, c.sceneManager.getWorld());
-        c.menuEvent.menuSetDotPlots(c.menuNode, c.sceneManager.getWorld());
+        c.menuEvent.menuSetDrawMode(c.menuNode, c.sceneManager.getMoleculeGroup());
+        c.menuEvent.menuSetDotPlots(c.menuNode, c.sceneManager.getMoleculeGroup());
         c.menuEvent.menuToggleBoundingBox(c.menuNode, c.sceneManager);
         c.menuEvent.menuToggleNormals(c.menuNode, c.sceneManager);
         c.menuEvent.menuToggleBackFaceCulling(c.menuNode, c.sceneManager.getMoleculeGroup());
@@ -232,6 +242,7 @@ public class Fx3DViewerApp extends WindowsThemeJavaFXApp {
         c.menuEvent.menuToggleDirectionalLight(c.menuNode, c.lightManager);
         c.menuEvent.menuDirectionalLight(c.menuNode, c.lightManager);
         c.menuEvent.menuClearModel(c.menuNode, c.sceneManager, () -> {
+            c.modelLoadService.cancelCurrentLoad();
             c.statusBar.updateModelStats();
             c.modelInfoPanel.setVisible(false);
             c.modelInfoPanel.setManaged(false);
@@ -246,6 +257,8 @@ public class Fx3DViewerApp extends WindowsThemeJavaFXApp {
         c.menuEvent.setupRotationEngineMenu(c.menuNode, c.cameraSystem, c.viewingAxes,
                 () -> updateStrategyUI(primaryStage),
                 () -> updateStrategyUI(primaryStage));
+
+        primaryStage.setOnCloseRequest(event -> disposeComponents());
     }
 
     /**
@@ -306,5 +319,20 @@ public class Fx3DViewerApp extends WindowsThemeJavaFXApp {
 
     public AutoRotationAnimation getAutoRotation() {
         return c.keyboardInteraction.getAutoRotation();
+    }
+
+    private void disposeComponents() {
+        if (c.modelLoadService != null) {
+            c.modelLoadService.dispose();
+        }
+        if (c.dragDrop != null) {
+            c.dragDrop.dispose();
+        }
+        if (c.keyboardInteraction != null) {
+            c.keyboardInteraction.dispose();
+        }
+        if (c.statusBar != null) {
+            c.statusBar.dispose();
+        }
     }
 }

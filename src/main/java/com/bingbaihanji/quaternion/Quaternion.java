@@ -632,8 +632,12 @@ public class Quaternion {
      * 比较两个四元数是否近似相等
      */
     private static boolean approxEquals(Quaternion q1, Quaternion q2, double epsilon) {
-        if (q1 == q2) return true;
-        if (q1 == null || q2 == null) return false;
+        if (q1 == q2) {
+            return true;
+        }
+        if (q1 == null || q2 == null) {
+            return false;
+        }
         return Math.abs(q1.x - q2.x) <= epsilon &&
                 Math.abs(q1.y - q2.y) <= epsilon &&
                 Math.abs(q1.z - q2.z) <= epsilon &&
@@ -1076,8 +1080,12 @@ public class Quaternion {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
 
         Quaternion other = (Quaternion) obj;
 
@@ -1114,7 +1122,9 @@ public class Quaternion {
      * 检查两个四元数是否表示相同的旋转（考虑精度误差）
      */
     public boolean isSameRotation(Quaternion other, double epsilon) {
-        if (other == null) return false;
+        if (other == null) {
+            return false;
+        }
         return approxEquals(this, other, epsilon) ||
                 approxEquals(this, new Quaternion(-other.x, -other.y, -other.z, -other.w), epsilon);
     }

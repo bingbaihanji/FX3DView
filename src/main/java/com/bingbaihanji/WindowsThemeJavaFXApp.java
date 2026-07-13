@@ -61,10 +61,14 @@ public abstract class WindowsThemeJavaFXApp extends Application {
 
     protected void applyDarkTitleBar(Stage stage, boolean dark) {
         String os = System.getProperty("os.name");
-        if (os == null || !os.toLowerCase().contains("win")) return;
+        if (os == null || !os.toLowerCase().contains("win")) {
+            return;
+        }
 
         WinDef.HWND hwnd = getWindowHandle(stage);
-        if (hwnd == null) return;
+        if (hwnd == null) {
+            return;
+        }
 
         int mode = dark ? 1 : 0;
         Memory pDark = new Memory(4);
@@ -94,9 +98,12 @@ public abstract class WindowsThemeJavaFXApp extends Application {
                     Method getRawHandle = peer.getClass().getMethod("getRawHandle");
                     Object raw = getRawHandle.invoke(peer);
 
-                    if (raw instanceof Long) return new WinDef.HWND(new Pointer((Long) raw));
-                    if (raw instanceof Integer)
+                    if (raw instanceof Long) {
+                        return new WinDef.HWND(new Pointer((Long) raw));
+                    }
+                    if (raw instanceof Integer) {
                         return new WinDef.HWND(new Pointer(Integer.toUnsignedLong((Integer) raw)));
+                    }
                 } catch (NoSuchMethodException ignore) {
                 }
             }
@@ -104,7 +111,9 @@ public abstract class WindowsThemeJavaFXApp extends Application {
         }
 
         String title = stage.getTitle();
-        if (title == null || title.isEmpty()) return null;
+        if (title == null || title.isEmpty()) {
+            return null;
+        }
 
         for (int i = 0; i < 50; i++) {
             WinDef.HWND hwnd = User32.INSTANCE.FindWindow(null, new WString(title).toString());

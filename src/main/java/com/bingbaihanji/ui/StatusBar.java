@@ -111,8 +111,12 @@ public class StatusBar extends HBox implements Lifecycle {
     }
 
     private static String formatNumber(int n) {
-        if (n >= 1_000_000) return String.format("%.1fM", n / 1_000_000.0);
-        if (n >= 1_000) return String.format("%.1fK", n / 1_000.0);
+        if (n >= 1_000_000) {
+            return String.format("%.1fM", n / 1_000_000.0);
+        }
+        if (n >= 1_000) {
+            return String.format("%.1fK", n / 1_000.0);
+        }
         return String.valueOf(n);
     }
 
@@ -208,7 +212,7 @@ public class StatusBar extends HBox implements Lifecycle {
             if (newState == Worker.State.SUCCEEDED
                     || newState == Worker.State.FAILED
                     || newState == Worker.State.CANCELLED) {
-                hideProgress();
+                hideProgress(task);
             }
         });
 
@@ -222,7 +226,10 @@ public class StatusBar extends HBox implements Lifecycle {
     /**
      * 隐藏进度条和取消按钮，解绑 progress 属性
      */
-    private void hideProgress() {
+    private void hideProgress(Task<?> finishedTask) {
+        if (currentTask != finishedTask) {
+            return;
+        }
         progressBar.setVisible(false);
         cancelButton.setVisible(false);
         progressBar.progressProperty().unbind();

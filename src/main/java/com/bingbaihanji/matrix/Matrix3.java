@@ -297,8 +297,12 @@ public final class Matrix3 {
     public static Matrix3 lerp(Matrix3 a, Matrix3 b, double t) {
         Objects.requireNonNull(a, "插值起始矩阵a不能为空");
         Objects.requireNonNull(b, "插值结束矩阵b不能为空");
-        if (t <= 0.0) return a;
-        if (t >= 1.0) return b;
+        if (t <= 0.0) {
+            return a;
+        }
+        if (t >= 1.0) {
+            return b;
+        }
 
         return new Matrix3(
                 a.m00 + (b.m00 - a.m00) * t,
@@ -362,8 +366,12 @@ public final class Matrix3 {
         Objects.requireNonNull(a, "插值起始矩阵a不能为空");
         Objects.requireNonNull(b, "插值结束矩阵b不能为空");
 
-        if (t <= 0.0) return new Matrix3().set(a);
-        if (t >= 1.0) return new Matrix3().set(b);
+        if (t <= 0.0) {
+            return new Matrix3().set(a);
+        }
+        if (t >= 1.0) {
+            return new Matrix3().set(b);
+        }
 
         // 计算相对旋转：R_rel = A^T * B
         Matrix3 aInv = a.transpose(); // 旋转矩阵的逆 = 转置
@@ -446,9 +454,15 @@ public final class Matrix3 {
             double y = Math.sqrt(Math.max(0, (m11 - cos) / (1 - cos)));
             double z = Math.sqrt(Math.max(0, (m22 - cos) / (1 - cos)));
             // 通过反对称部分的符号确定方向
-            if (m21 - m12 < 0) x = -x;
-            if (m02 - m20 < 0) y = -y;
-            if (m10 - m01 < 0) z = -z;
+            if (m21 - m12 < 0) {
+                x = -x;
+            }
+            if (m02 - m20 < 0) {
+                y = -y;
+            }
+            if (m10 - m01 < 0) {
+                z = -z;
+            }
             double len = Math.sqrt(x * x + y * y + z * z);
             outAxis.set(x / len, y / len, z / len);
         } else {
@@ -561,7 +575,9 @@ public final class Matrix3 {
      */
     public Matrix3 inverse() {
         double det = determinant();
-        if (Math.abs(det) < DETERMINANT_THRESHOLD) return null;
+        if (Math.abs(det) < DETERMINANT_THRESHOLD) {
+            return null;
+        }
         double invDet = 1.0 / det;
         double c00 = (m11 * m22 - m12 * m21) * invDet;
         double c01 = -(m01 * m22 - m02 * m21) * invDet;

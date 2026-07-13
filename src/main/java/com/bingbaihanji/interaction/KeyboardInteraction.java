@@ -68,7 +68,9 @@ public class KeyboardInteraction implements Lifecycle {
             case SPACE -> autoRotation.toggle();
             case R -> applyRandomRotation();
             case M -> {
-                if (onMultiViewportToggle != null) onMultiViewportToggle.run();
+                if (onMultiViewportToggle != null) {
+                    onMultiViewportToggle.run();
+                }
             }
         }
     }

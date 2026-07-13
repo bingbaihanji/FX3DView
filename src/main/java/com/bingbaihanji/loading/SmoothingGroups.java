@@ -35,7 +35,7 @@ public class SmoothingGroups {
      * @param faceNormals 每个面对应的法线索引二维数组
      * @param normals     法线一维数组，存储所有三维法线向量
      */
-    public SmoothingGroups(int faces[][], int[][] faceNormals, float[] normals) {
+    public SmoothingGroups(int[][] faces, int[][] faceNormals, float[] normals) {
         this.faces = faces;
         this.faceNormals = faceNormals;
         this.normals = normals;

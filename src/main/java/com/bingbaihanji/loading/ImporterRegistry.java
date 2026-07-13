@@ -34,7 +34,9 @@ public class ImporterRegistry {
      * @return 导入器实例，如果没有注册则返回 null
      */
     public Importer getImporter(String extension) {
-        if (extension == null) return null;
+        if (extension == null) {
+            return null;
+        }
         Supplier<Importer> supplier = importers.get(extension.toLowerCase(Locale.ROOT));
         return supplier != null ? supplier.get() : null;
     }

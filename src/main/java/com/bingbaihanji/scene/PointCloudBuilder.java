@@ -37,7 +37,9 @@ public final class PointCloudBuilder {
      */
     public static Group build(float[] samplePoints, Color color, Affine cameraAffine) {
         int pointCount = samplePoints.length / 3;
-        if (pointCount == 0) return new Group();
+        if (pointCount == 0) {
+            return new Group();
+        }
 
         // 从相机的旋转矩阵中提取 world-space 的 right 和 up 方向
         float rx, ry, rz, ux, uy, uz;

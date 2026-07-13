@@ -254,8 +254,12 @@ public final class Vector3 {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         Vector3 vector3 = (Vector3) o;
         return Double.doubleToLongBits(x) == Double.doubleToLongBits(vector3.x) &&
                 Double.doubleToLongBits(y) == Double.doubleToLongBits(vector3.y) &&

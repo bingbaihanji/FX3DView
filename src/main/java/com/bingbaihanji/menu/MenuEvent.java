@@ -2,9 +2,9 @@ package com.bingbaihanji.menu;
 
 import com.bingbaihanji.camera.CameraSystem;
 import com.bingbaihanji.camera.ViewPreset;
-import com.bingbaihanji.interaction.DragDropHandler;
 import com.bingbaihanji.lighting.LightManager;
 import com.bingbaihanji.loading.ImporterRegistry;
+import com.bingbaihanji.loading.ModelLoadService;
 import com.bingbaihanji.rotation.MatrixRotation;
 import com.bingbaihanji.rotation.QuaternionRotation;
 import com.bingbaihanji.scene.Scene3DManager;
@@ -127,6 +127,22 @@ public class MenuEvent {
                               Runnable onModelLoaded,
                               Consumer<Task<?>> onTaskCreated,
                               ImporterRegistry registry) {
+        ModelLoadService loadService = new ModelLoadService(
+                world, moleculeGroup, registry, null, onModelLoaded,
+                task -> {
+                    if (onTaskCreated != null) {
+                        onTaskCreated.accept(task);
+                    }
+                });
+        import3DModel(primaryStage, menuNode, loadService, registry);
+    }
+
+    /**
+     * 导入3D模型（使用窗口级加载服务，避免连续导入竞态）。
+     */
+    public void import3DModel(Stage primaryStage, MenuNode menuNode,
+                              ModelLoadService modelLoadService,
+                              ImporterRegistry registry) {
         menuNode.getImportObj().setOnAction(event -> {
             FileChooser fileChooser = new FileChooser();
 
@@ -151,14 +167,7 @@ public class MenuEvent {
             File filePath = fileChooser.showOpenDialog(primaryStage);
 
             if (filePath != null) {
-                DragDropHandler.loadModelFile(
-                        filePath, world, moleculeGroup, onModelLoaded,
-                        task -> {
-                            if (onTaskCreated != null) {
-                                onTaskCreated.accept(task);
-                            }
-                        },
-                        registry);
+                modelLoadService.load(filePath);
             }
         });
     }
@@ -186,8 +195,15 @@ public class MenuEvent {
     /**
      * 点云菜单（委托给 PointCloudHandler）
      */
-    public void menuSetDotPlots(MenuNode menuNode, Group world) {
-        menuNode.getPlotsMode().setOnAction(event -> pointCloudHandler.toggleDotPlots(world));
+    public void menuSetDotPlots(MenuNode menuNode, Group modelGroup) {
+        menuSetDotPlots(menuNode, modelGroup, modelGroup);
+    }
+
+    /**
+     * 点云菜单（只采样模型组，可指定点云挂载父节点）。
+     */
+    public void menuSetDotPlots(MenuNode menuNode, Group modelGroup, Group renderParent) {
+        menuNode.getPlotsMode().setOnAction(event -> pointCloudHandler.toggleDotPlots(modelGroup, renderParent));
     }
 
     /**
@@ -344,6 +360,7 @@ public class MenuEvent {
      */
     public void menuClearModel(MenuNode menuNode, Scene3DManager sceneManager, Runnable onCleared) {
         menuNode.getClearModel().setOnAction(event -> {
+            resetModelVisualization(menuNode, sceneManager.getMoleculeGroup(), sceneManager.getWorld());
             sceneManager.clearModel();
             // 重置内部状态
             isDrawModeIsLINE = false;
@@ -362,6 +379,25 @@ public class MenuEvent {
      */
     public void setupShadingModes(MenuNode menuNode, Group moleculeGroup) {
         shadingHandler.setupShadingModes(menuNode, moleculeGroup);
+    }
+
+    /**
+     * 重置依赖当前模型节点的临时可视化状态。
+     */
+    public void resetModelVisualization(Group moleculeGroup, Group renderParent) {
+        pointCloudHandler.reset();
+        shadingHandler.reset(moleculeGroup);
+    }
+
+    /**
+     * 重置模型可视化状态并同步菜单勾选。
+     */
+    public void resetModelVisualization(MenuNode menuNode, Group moleculeGroup, Group renderParent) {
+        resetModelVisualization(moleculeGroup, renderParent);
+        isDrawModeIsLINE = false;
+        isCullFace = false;
+        menuNode.getTexturedMode().setSelected(true);
+        menuNode.getBackFaceCullingToggle().setSelected(false);
     }
 
     /**

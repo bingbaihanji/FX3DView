@@ -230,6 +230,7 @@ public class GroupTransform extends Group {
     /**
      * 打印当前变换参数的调试信息。
      */
+    @Override
     public String toString() {
         return "t = (" +
                 translate.getX() + ", " +

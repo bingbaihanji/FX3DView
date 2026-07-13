@@ -69,6 +69,24 @@ public class ShadingHandler {
         return shadingMode.get();
     }
 
+    /**
+     * 清理着色模式产生的临时状态，恢复模型到普通贴图显示。
+     */
+    public void reset(Group modelGroup) {
+        removeOverlays(modelGroup);
+        originalMaterials.forEach((mesh, material) -> {
+            mesh.setDrawMode(DrawMode.FILL);
+            mesh.setMaterial(material);
+            mesh.setVisible(true);
+        });
+        originalMaterials.clear();
+        traverseAllMeshViews(modelGroup, mesh -> {
+            mesh.setDrawMode(DrawMode.FILL);
+            mesh.setVisible(true);
+        });
+        shadingMode.set(ShadingMode.TEXTURED);
+    }
+
     public void setupShadingModes(MenuNode menuNode, Group moleculeGroup) {
         menuNode.getTexturedMode().setOnAction(e ->
                 applyShadingMode(ShadingMode.TEXTURED, moleculeGroup));
@@ -83,7 +101,9 @@ public class ShadingHandler {
     }
 
     private void applyShadingMode(ShadingMode mode, Group moleculeGroup) {
-        if (mode == shadingMode.get()) return;
+        if (mode == shadingMode.get()) {
+            return;
+        }
         shadingMode.set(mode);
         removeOverlays(moleculeGroup);
 
@@ -100,7 +120,9 @@ public class ShadingHandler {
         traverseAllMeshViews(modelGroup, mesh -> {
             mesh.setDrawMode(DrawMode.FILL);
             Material orig = originalMaterials.remove(mesh);
-            if (orig != null) mesh.setMaterial(orig);
+            if (orig != null) {
+                mesh.setMaterial(orig);
+            }
             mesh.setVisible(true);
         });
     }
@@ -136,7 +158,9 @@ public class ShadingHandler {
             mesh.setDrawMode(DrawMode.FILL);
             mesh.setVisible(true);
             Node parent = mesh.getParent();
-            if (parent instanceof Group) pairs.add(new Node[]{mesh, parent});
+            if (parent instanceof Group) {
+                pairs.add(new Node[]{mesh, parent});
+            }
         });
 
         for (Node[] pair : pairs) {
@@ -170,11 +194,15 @@ public class ShadingHandler {
                 int maxFaces = Math.min(faces.length / 6, 5000); // 最多采样5000个三角面
 
                 for (int i = 0; i < maxFaces * 6; i += 6) {
-                    if (i + 4 >= faces.length) break;
+                    if (i + 4 >= faces.length) {
+                        break;
+                    }
                     int vi0 = faces[i] * 3;
                     int vi1 = faces[i + 2] * 3;
                     int vi2 = faces[i + 4] * 3;
-                    if (vi0 + 2 >= points.length || vi1 + 2 >= points.length || vi2 + 2 >= points.length) continue;
+                    if (vi0 + 2 >= points.length || vi1 + 2 >= points.length || vi2 + 2 >= points.length) {
+                        continue;
+                    }
 
                     // 两条边向量
                     double e1x = points[vi1] - points[vi0];
@@ -223,7 +251,9 @@ public class ShadingHandler {
     private void removeOverlays(Group modelGroup) {
         for (MeshView overlay : overlayMeshViews) {
             Node parent = overlay.getParent();
-            if (parent instanceof Group group) group.getChildren().remove(overlay);
+            if (parent instanceof Group group) {
+                group.getChildren().remove(overlay);
+            }
         }
         overlayMeshViews.clear();
     }

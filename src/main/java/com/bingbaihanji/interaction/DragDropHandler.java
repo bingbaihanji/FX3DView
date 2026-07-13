@@ -1,20 +1,14 @@
 package com.bingbaihanji.interaction;
 
 import com.bingbaihanji.core.Lifecycle;
-import com.bingbaihanji.loading.Importer;
 import com.bingbaihanji.loading.ImporterRegistry;
-import com.bingbaihanji.loading.Model3D;
+import com.bingbaihanji.loading.ModelLoadService;
 import javafx.concurrent.Task;
 import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Pane;
-import javafx.scene.shape.MeshView;
-import javafx.scene.transform.Rotate;
-
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.util.List;
@@ -27,16 +21,9 @@ import java.util.function.Consumer;
  * 支持的文件格式由注册表中的导入器工厂决定。
  * </p>
  */
-@Slf4j
 public class DragDropHandler implements Lifecycle {
 
-    private final Group world;
-    private final Group moleculeGroup;
-    private final Runnable onModelLoaded;
-    /**
-     * 加载任务创建回调（在 FX 线程调用，用于 UI 绑定进度条/取消按钮）
-     */
-    private final Consumer<Task<Group>> onTaskCreated;
+    private final ModelLoadService modelLoadService;
     /**
      * 导入器注册表，按扩展名查找 Importer 工厂
      */
@@ -50,14 +37,19 @@ public class DragDropHandler implements Lifecycle {
      * @param onTaskCreated    加载任务创建回调，用于UI绑定进度条（可null，在FX线程调用）
      * @param importerRegistry 导入器注册表，按扩展名获取 Importer 实例
      */
+    public DragDropHandler(ModelLoadService modelLoadService, ImporterRegistry importerRegistry) {
+        this.modelLoadService = modelLoadService;
+        this.importerRegistry = importerRegistry;
+    }
+
+    /**
+     * 兼容旧装配方式。新代码应优先注入窗口级 {@link ModelLoadService}。
+     */
     public DragDropHandler(Group world, Group moleculeGroup,
                            Runnable onModelLoaded, Consumer<Task<Group>> onTaskCreated,
                            ImporterRegistry importerRegistry) {
-        this.world = world;
-        this.moleculeGroup = moleculeGroup;
-        this.onModelLoaded = onModelLoaded;
-        this.onTaskCreated = onTaskCreated;
-        this.importerRegistry = importerRegistry;
+        this(new ModelLoadService(world, moleculeGroup, importerRegistry,
+                null, onModelLoaded, onTaskCreated), importerRegistry);
     }
 
     // ==================== 共享的模型加载逻辑 ====================
@@ -111,77 +103,8 @@ public class DragDropHandler implements Lifecycle {
     public static Task<Group> loadModelFile(File file, Group world, Group moleculeGroup,
                                             Runnable onLoaded, Consumer<Task<Group>> onTaskCreated,
                                             ImporterRegistry registry) {
-        Task<Group> loadTask = new Task<>() {
-            @Override
-            protected Group call() throws Exception {
-                String ext = getExtension(file.getName());
-                Importer importer = registry.getImporter(ext);
-                if (importer == null) {
-                    throw new IllegalArgumentException("不支持的文件格式: " + ext);
-                }
-                // 使用带进度回调的 load 方法，将解析进度映射到 Task 的 progress 属性
-                Model3D load = importer.load(file.toURI().toURL(), (progress, status) -> {
-                    updateProgress(progress, 1.0);
-                    updateMessage(status);
-                });
-
-                Group model = new Group();
-                Rotate rotateFix = new Rotate(-180, Rotate.Z_AXIS);
-                model.getTransforms().add(rotateFix);
-
-                for (Node n : load.getMeshViews()) {
-                    if (n instanceof MeshView mesh) {
-                        mesh.setCullFace(javafx.scene.shape.CullFace.NONE);
-                        model.getChildren().add(mesh);
-                    }
-                }
-                return model;
-            }
-        };
-
-        loadTask.setOnSucceeded(event -> {
-            Group model = loadTask.getValue();
-            if (model == null) return;
-
-            moleculeGroup.getChildren().clear();
-            moleculeGroup.getChildren().add(model);
-
-            var bounds = model.getBoundsInParent();
-            double centerX = (bounds.getMinX() + bounds.getMaxX()) / 2;
-            double centerY = (bounds.getMinY() + bounds.getMaxY()) / 2;
-            double centerZ = (bounds.getMinZ() + bounds.getMaxZ()) / 2;
-            moleculeGroup.setTranslateX(-centerX);
-            moleculeGroup.setTranslateY(-centerY);
-            moleculeGroup.setTranslateZ(-centerZ);
-
-            if (!world.getChildren().contains(moleculeGroup)) {
-                world.getChildren().add(moleculeGroup);
-            }
-
-            if (onLoaded != null) {
-                onLoaded.run();
-            }
-        });
-
-        loadTask.setOnFailed(event -> {
-            Throwable ex = loadTask.getException();
-            if (loadTask.isCancelled()) {
-                log.info("模型加载已被用户取消");
-            } else {
-                log.error("加载模型失败", ex);
-            }
-        });
-
-        // 同步回调（loadModelFile 已在 FX 线程被调用），让 UI 在后台线程启动前绑定进度条
-        if (onTaskCreated != null) {
-            onTaskCreated.accept(loadTask);
-        }
-
-        Thread thread = new Thread(loadTask);
-        thread.setName("Load Model Thread");
-        thread.setDaemon(true);
-        thread.start();
-        return loadTask;
+        return ModelLoadService.loadModelFile(
+                file, world, moleculeGroup, onLoaded, onTaskCreated, registry);
     }
 
     /**
@@ -225,11 +148,13 @@ public class DragDropHandler implements Lifecycle {
 
     private void handleDragDropped(DragEvent event) {
         Dragboard db = event.getDragboard();
-        if (!db.hasFiles()) return;
+        if (!db.hasFiles()) {
+            return;
+        }
 
         File supportedFile = findSupportedFile(db.getFiles(), importerRegistry);
         if (supportedFile != null) {
-            loadModelFile(supportedFile, world, moleculeGroup, onModelLoaded, onTaskCreated, importerRegistry);
+            modelLoadService.load(supportedFile);
         }
         event.setDropCompleted(supportedFile != null);
         event.consume();

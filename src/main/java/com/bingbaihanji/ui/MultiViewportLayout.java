@@ -340,8 +340,12 @@ public class MultiViewportLayout extends GridPane {
                 // 右键拖拽：平移模型
                 Group container = modelContainers[idx];
                 double factor = InteractionConfig.MOUSE_SPEED * InteractionConfig.TRACK_SPEED;
-                if (e.isControlDown()) factor *= InteractionConfig.CONTROL_MULTIPLIER;
-                if (e.isShiftDown()) factor *= InteractionConfig.SHIFT_MULTIPLIER;
+                if (e.isControlDown()) {
+                    factor *= InteractionConfig.CONTROL_MULTIPLIER;
+                }
+                if (e.isShiftDown()) {
+                    factor *= InteractionConfig.SHIFT_MULTIPLIER;
+                }
                 container.setTranslateX(container.getTranslateX() + deltaX * factor);
                 container.setTranslateY(container.getTranslateY() + deltaY * factor);
             }
@@ -514,7 +518,9 @@ public class MultiViewportLayout extends GridPane {
         // 视口 1-3：重置独立相机
         for (int idx = 1; idx < NUM_VIEWPORTS; idx++) {
             int gIdx = idx - 1;
-            if (cameraGroups[gIdx] == null) continue;
+            if (cameraGroups[gIdx] == null) {
+                continue;
+            }
 
             // 清除所有变换（含用户拖拽累积的旋转）
             cameraGroups[gIdx].getTransforms().clear();
@@ -544,9 +550,13 @@ public class MultiViewportLayout extends GridPane {
         syncViewport0MiniAxes();
         for (int i = 1; i < NUM_VIEWPORTS; i++) {
             if (miniAxes[i] != null) {
-                if (i == 1) miniAxes[i].setFixedAngles(0, 0);
-                else if (i == 2) miniAxes[i].setFixedAngles(0, -90);
-                else miniAxes[i].setFixedAngles(-90, 0);
+                if (i == 1) {
+                    miniAxes[i].setFixedAngles(0, 0);
+                } else if (i == 2) {
+                    miniAxes[i].setFixedAngles(0, -90);
+                } else {
+                    miniAxes[i].setFixedAngles(-90, 0);
+                }
             }
         }
     }
@@ -621,7 +631,9 @@ public class MultiViewportLayout extends GridPane {
      * 设置激活视口（CORNFLOWERBLUE 边框高亮）。
      */
     private void setActiveViewport(int index) {
-        if (maximized) return;
+        if (maximized) {
+            return;
+        }
 
         // 取消上一个激活视口的高亮
         if (activeViewport >= 0 && activeViewport < NUM_VIEWPORTS) {

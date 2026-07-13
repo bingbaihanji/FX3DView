@@ -465,10 +465,10 @@ public class ObjImporter implements Importer {
             String[] split = value.split(" +");
 
             // 解析 U 坐标，若为 "NaN" 则设为 Float.NaN
-            float u = split[0].trim().equalsIgnoreCase("nan") ? Float.NaN : Float.parseFloat(split[0]);
+            float u = "nan".equalsIgnoreCase(split[0].trim()) ? Float.NaN : Float.parseFloat(split[0]);
 
             // 解析 V 坐标并反转其方向，若为 "NaN" 则设为 Float.NaN
-            float v = split[1].trim().equalsIgnoreCase("nan") ? Float.NaN : 1 - Float.parseFloat(split[1]);
+            float v = "nan".equalsIgnoreCase(split[1].trim()) ? Float.NaN : 1 - Float.parseFloat(split[1]);
 
             // 将解析后的纹理坐标添加到 UV 集合中
             uvs.addAll(u, v);
@@ -565,7 +565,7 @@ public class ObjImporter implements Importer {
 
 
         private void parseSmoothGroup(String value) {
-            currentSmoothGroup = value.equals("off") ? 0 : Integer.parseInt(value);
+            currentSmoothGroup = "off".equals(value) ? 0 : Integer.parseInt(value);
         }
 
         /**

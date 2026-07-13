@@ -65,7 +65,9 @@ public class NormalVisualizer {
         for (Node child : modelGroup.getChildren()) {
             collectEntries(child, child.getLocalToParentTransform(), entries);
         }
-        if (entries.isEmpty()) return;
+        if (entries.isEmpty()) {
+            return;
+        }
 
         // 统计总面数，动态计算全局采样步长（保证总输出约 MAX_LINES 条，均匀分布）
         int totalFaces = entries.stream().mapToInt(e -> e.faces().length / 6).sum();
@@ -78,7 +80,9 @@ public class NormalVisualizer {
         // 第二遍：按统一步长采样所有网格
         int[] count = {0};
         for (MeshEntry entry : entries) {
-            if (count[0] >= MAX_LINES) break;
+            if (count[0] >= MAX_LINES) {
+                break;
+            }
             buildNormalsForEntry(entry, targetGroup, mat, lineLength, lineRadius, stride, count);
         }
     }
@@ -94,7 +98,9 @@ public class NormalVisualizer {
      */
     private static void collectEntries(Node node, Transform toModelGroup, List<MeshEntry> entries) {
         if (node instanceof MeshView meshView) {
-            if (!(meshView.getMesh() instanceof TriangleMesh mesh)) return;
+            if (!(meshView.getMesh() instanceof TriangleMesh mesh)) {
+                return;
+            }
             float[] points = mesh.getPoints().toArray(null);
             int[] faces = mesh.getFaces().toArray(null);
             if (points.length > 0 && faces.length >= 6) {
@@ -121,10 +127,14 @@ public class NormalVisualizer {
         for (int i = 0; i < faces.length && count[0] < MAX_LINES; i += 6 * stride) {
             // faces 格式: [v0, uv0, v1, uv1, v2, uv2]
             int vi0 = faces[i] * 3;
-            if (i + 4 >= faces.length) continue;
+            if (i + 4 >= faces.length) {
+                continue;
+            }
             int vi1 = faces[i + 2] * 3;
             int vi2 = faces[i + 4] * 3;
-            if (vi0 + 2 >= points.length || vi1 + 2 >= points.length || vi2 + 2 >= points.length) continue;
+            if (vi0 + 2 >= points.length || vi1 + 2 >= points.length || vi2 + 2 >= points.length) {
+                continue;
+            }
 
             double v0x = points[vi0], v0y = points[vi0 + 1], v0z = points[vi0 + 2];
             double v1x = points[vi1], v1y = points[vi1 + 1], v1z = points[vi1 + 2];
@@ -142,14 +152,18 @@ public class NormalVisualizer {
             double ny = e1z * e2x - e1x * e2z;
             double nz = e1x * e2y - e1y * e2x;
             double nlen = Math.sqrt(nx * nx + ny * ny + nz * nz);
-            if (nlen < 1e-9) continue;
+            if (nlen < 1e-9) {
+                continue;
+            }
             nx /= nlen; ny /= nlen; nz /= nlen;
 
             // 变换到 modelGroup 局部空间
             Point3D pos = entry.toModelGroup().transform(cx, cy, cz);
             Point3D dir = entry.toModelGroup().deltaTransform(nx, ny, nz);
             double dn = Math.sqrt(dir.getX() * dir.getX() + dir.getY() * dir.getY() + dir.getZ() * dir.getZ());
-            if (dn < 1e-9) continue;
+            if (dn < 1e-9) {
+                continue;
+            }
             double dnx = dir.getX() / dn;
             double dny = dir.getY() / dn;
             double dnz = dir.getZ() / dn;

@@ -150,34 +150,6 @@
             </plugin>
 
 
-            <plugin>
-                <groupId>org.graalvm.buildtools</groupId>
-                <artifactId>native-maven-plugin</artifactId>
-                <version>1.1.1</version>
-                <extensions>true</extensions>
-                <executions>
-                    <execution>
-                        <id>build-native</id>
-                        <goals>
-                            <goal>compile-no-fork</goal>
-                        </goals>
-                        <phase>package</phase>
-                    </execution>
-                </executions>
-                <configuration>
-                    <mainClass>com.bingbaihanji.StartMain</mainClass>
-                    <buildArgs>
-                        <arg>--enable-native-access=javafx.graphics</arg>
-                        <arg>-H:+ReportExceptionStackTraces</arg>
-                        <buildArg>--no-fallback</buildArg>
-                        <buildArg>-H:+JNI</buildArg>
-                        <buildArg>--initialize-at-run-time=com.sun.glass.ui.win.WinApplication</buildArg>
-                        <buildArg>--initialize-at-run-time=com.sun.javafx.tk.quantum.QuantumToolkit</buildArg>
-                        <buildArg>--initialize-at-run-time=com.sun.prism.d3d.D3DPipeline</buildArg>
-                    </buildArgs>
-                </configuration>
-
-            </plugin>
 
         </plugins>
     </build>

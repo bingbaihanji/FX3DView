@@ -129,8 +129,12 @@ public class MouseInteraction {
      */
     private void handleTranslation(MouseEvent me) {
         double factor = 1.0;
-        if (me.isControlDown()) factor = InteractionConfig.CONTROL_MULTIPLIER;
-        if (me.isShiftDown()) factor = InteractionConfig.SHIFT_MULTIPLIER;
+        if (me.isControlDown()) {
+            factor = InteractionConfig.CONTROL_MULTIPLIER;
+        }
+        if (me.isShiftDown()) {
+            factor = InteractionConfig.SHIFT_MULTIPLIER;
+        }
 
         GroupTransform translateTransform = cameraSystem.getCameraTranslateTransform();
         translateTransform.setTx(
@@ -202,13 +206,17 @@ public class MouseInteraction {
         // 正交模式：缩放调节 Scale
         if (cameraSystem.isOrthographic()) {
             double zoomFactor = 1.0 + delta * 0.001;
-            if (se.isShiftDown()) zoomFactor = 1.0 + delta * 0.005;
+            if (se.isShiftDown()) {
+                zoomFactor = 1.0 + delta * 0.005;
+            }
             cameraSystem.zoomOrtho(zoomFactor);
             return;
         }
 
         double factor = 1.0;
-        if (se.isShiftDown()) factor = InteractionConfig.SHIFT_MULTIPLIER;
+        if (se.isShiftDown()) {
+            factor = InteractionConfig.SHIFT_MULTIPLIER;
+        }
 
         double newZ = cameraSystem.getCamera().getTranslateZ()
                 - delta * InteractionConfig.MOUSE_SPEED * 0.1 * factor;

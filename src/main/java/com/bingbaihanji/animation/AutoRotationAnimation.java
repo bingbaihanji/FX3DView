@@ -85,6 +85,7 @@ public class AutoRotationAnimation implements Lifecycle {
     /**
      * 停止自动旋转
      */
+    @Override
     public void stop() {
         if (isRunning) {
             timer.stop();

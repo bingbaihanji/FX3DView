@@ -113,7 +113,9 @@ public class MiniAxes {
         double dx = sx - CX;
         double dy = sy - CY;
         double len = Math.sqrt(dx * dx + dy * dy);
-        if (len < 0.5) return; // 近乎垂直于屏幕，不可见
+        if (len < 0.5) {
+            return; // 近乎垂直于屏幕，不可见
+        }
 
         double scale = AXIS_LEN / len;
         double ex = CX + dx * scale;

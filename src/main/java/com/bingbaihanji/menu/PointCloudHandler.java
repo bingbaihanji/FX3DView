@@ -1,6 +1,7 @@
 package com.bingbaihanji.menu;
 
 import com.bingbaihanji.scene.PointCloudBuilder;
+import javafx.geometry.Point3D;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
@@ -45,9 +46,9 @@ public class PointCloudHandler {
      */
     private Group dotPlotGroup = null;
     /**
-     * 当前绑定的世界 Group（用于点云刷新）
+     * 当前点云挂载的父 Group（用于点云刷新）
      */
-    private Group currentWorld = null;
+    private Group currentRenderParent = null;
     /**
      * 最近一次构建点云使用的采样数据缓存（用于相机旋转时重建 billboard）
      */
@@ -81,31 +82,55 @@ public class PointCloudHandler {
      * 关闭：删除点云，恢复原MeshView可见性
      * </p>
      */
-    public void toggleDotPlots(Group world) {
-        this.currentWorld = world;
+    public void toggleDotPlots(Group modelGroup) {
+        toggleDotPlots(modelGroup, modelGroup);
+    }
+
+    /**
+     * 切换点云模式。
+     *
+     * @param modelGroup   只从该模型组采样 MeshView，避免坐标轴、包围盒等辅助节点被点云化
+     * @param renderParent 点云节点挂载位置
+     */
+    public void toggleDotPlots(Group modelGroup, Group renderParent) {
+        this.currentRenderParent = renderParent;
         if (!isDotPlotMode) {
             // 删除旧点云（避免重复叠加）
-            removeDotPlotFromWorld();
+            removeDotPlotFromParent();
             // 恢复之前隐藏的MeshView
             hiddenMeshViews.forEach(meshView -> meshView.setVisible(true));
             hiddenMeshViews.clear();
 
             // 采样顶点并缓存
-            cachedSamplePoints = samplePointsFromModel(world);
+            cachedSamplePoints = samplePointsFromModel(modelGroup, renderParent);
             // 初始用十字星渲染（不依赖相机方向），后续 refreshPointCloud 会转为 billboard
             dotPlotGroup = PointCloudBuilder.build(cachedSamplePoints, Color.LIGHTGRAY, null);
-            world.getChildren().add(dotPlotGroup);
+            renderParent.getChildren().add(dotPlotGroup);
             isDotPlotMode = true;
             log.info("点云模式已开启");
         } else {
-            removeDotPlotFromWorld();
-            hiddenMeshViews.forEach(meshView -> meshView.setVisible(true));
-            hiddenMeshViews.clear();
-            cachedSamplePoints = null;
-            currentWorld = null;
-            isDotPlotMode = false;
+            reset();
             log.info("点云模式已关闭");
         }
+    }
+
+    /**
+     * 清理点云模式，恢复被隐藏的原始网格。
+     */
+    public void reset() {
+        removeDotPlotFromParent();
+        hiddenMeshViews.forEach(meshView -> meshView.setVisible(true));
+        hiddenMeshViews.clear();
+        cachedSamplePoints = null;
+        currentRenderParent = null;
+        isDotPlotMode = false;
+    }
+
+    /**
+     * 是否处于点云模式。
+     */
+    public boolean isDotPlotMode() {
+        return isDotPlotMode;
     }
 
     /**
@@ -118,24 +143,28 @@ public class PointCloudHandler {
      * @param cameraAffine 当前相机旋转仿射
      */
     public void refreshPointCloud(Affine cameraAffine) {
-        if (!isDotPlotMode || cachedSamplePoints == null || currentWorld == null) return;
+        if (!isDotPlotMode || cachedSamplePoints == null || currentRenderParent == null) {
+            return;
+        }
 
         long now = System.nanoTime();
-        if (now - lastRefreshNs < REFRESH_INTERVAL_NS) return;
+        if (now - lastRefreshNs < REFRESH_INTERVAL_NS) {
+            return;
+        }
         lastRefreshNs = now;
 
         // 移除旧点云
-        removeDotPlotFromWorld();
+        removeDotPlotFromParent();
 
         // 用缓存数据 + 新相机方向重建 billboard 点云
         dotPlotGroup = PointCloudBuilder.build(cachedSamplePoints, Color.LIGHTGRAY, cameraAffine);
-        currentWorld.getChildren().add(dotPlotGroup);
+        currentRenderParent.getChildren().add(dotPlotGroup);
     }
 
-    private void removeDotPlotFromWorld() {
-        if (dotPlotGroup != null && currentWorld != null
-                && currentWorld.getChildren().contains(dotPlotGroup)) {
-            currentWorld.getChildren().remove(dotPlotGroup);
+    private void removeDotPlotFromParent() {
+        if (dotPlotGroup != null && currentRenderParent != null
+                && currentRenderParent.getChildren().contains(dotPlotGroup)) {
+            currentRenderParent.getChildren().remove(dotPlotGroup);
             dotPlotGroup = null;
         }
     }
@@ -144,19 +173,22 @@ public class PointCloudHandler {
      * 从模型顶点采样世界坐标点云数据
      * <p>
      * 递归查找所有MeshView，从其TriangleMesh中采样顶点，
-     * 通过worldTransform将局部坐标转为世界坐标。
+     * 通过变换链将局部坐标转为 renderParent 局部坐标。
      * 返回的采样数据被缓存，用于后续 billboard 重建。
      * </p>
      *
-     * @param modelGroup 模型根Group
-     * @return 世界坐标采样点数组 {x,y,z, x,y,z, ...}，无采样点时返回空数组
+     * @param modelGroup   模型根Group
+     * @param renderParent 点云挂载父节点
+     * @return renderParent 局部坐标采样点数组 {x,y,z, x,y,z, ...}，无采样点时返回空数组
      */
-    private float[] samplePointsFromModel(Group modelGroup) {
+    private float[] samplePointsFromModel(Group modelGroup, Group renderParent) {
         List<float[]> pointChunks = new ArrayList<>();
         int[] counter = {0};
 
         traverseAllMeshViews(modelGroup, meshView -> {
-            if (counter[0] >= MAX_POINTS) return;
+            if (counter[0] >= MAX_POINTS) {
+                return;
+            }
 
             meshView.setVisible(false);
             hiddenMeshViews.add(meshView);
@@ -168,7 +200,7 @@ public class PointCloudHandler {
 
             float[] points = triangleMesh.getPoints().toArray(null);
 
-            // 手动矩阵乘法，避免每点分配Point3D
+            // 先手动计算到 Scene 坐标，再转为 renderParent 局部坐标。
             Transform t = meshView.getLocalToSceneTransform();
             double mxx = t.getMxx(), mxy = t.getMxy(), mxz = t.getMxz(), tx_ = t.getTx();
             double myx = t.getMyx(), myy = t.getMyy(), myz = t.getMyz(), ty_ = t.getTy();
@@ -177,21 +209,29 @@ public class PointCloudHandler {
             int sampleCount = points.length / (3 * POINT_SAMPLE_RATE);
             int available = MAX_POINTS - counter[0];
             int chunkSize = Math.min(sampleCount, available);
-            if (chunkSize <= 0) return;
+            if (chunkSize <= 0) {
+                return;
+            }
             float[] chunk = new float[chunkSize * 3];
             int ci = 0;
 
             for (int i = 0, added = 0; added < chunkSize; i += 3 * POINT_SAMPLE_RATE, added++) {
                 float lx = points[i], ly = points[i + 1], lz = points[i + 2];
-                chunk[ci++] = (float) (mxx * lx + mxy * ly + mxz * lz + tx_);
-                chunk[ci++] = (float) (myx * lx + myy * ly + myz * lz + ty_);
-                chunk[ci++] = (float) (mzx * lx + mzy * ly + mzz * lz + tz_);
+                double sx = mxx * lx + mxy * ly + mxz * lz + tx_;
+                double sy = myx * lx + myy * ly + myz * lz + ty_;
+                double sz = mzx * lx + mzy * ly + mzz * lz + tz_;
+                Point3D parentPoint = renderParent.sceneToLocal(sx, sy, sz);
+                chunk[ci++] = (float) parentPoint.getX();
+                chunk[ci++] = (float) parentPoint.getY();
+                chunk[ci++] = (float) parentPoint.getZ();
             }
             counter[0] += chunkSize;
             pointChunks.add(chunk);
         });
 
-        if (pointChunks.isEmpty()) return new float[0];
+        if (pointChunks.isEmpty()) {
+            return new float[0];
+        }
 
         // 合并所有块
         float[] allPoints = new float[counter[0] * 3];
