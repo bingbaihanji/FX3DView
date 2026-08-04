@@ -12,6 +12,7 @@ public enum ViewPreset {
     BOTTOM(90, 0);
 
     public final double xAngle;
+
     public final double yAngle;
 
     ViewPreset(double xAngle, double yAngle) {

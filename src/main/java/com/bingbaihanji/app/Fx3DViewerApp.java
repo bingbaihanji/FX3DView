@@ -36,8 +36,8 @@ import java.net.URL;
 /**
  * 统一的3D查看器应用程序
  * <p>
- * 通过策略模式支持不同的旋转算法（四元数/矩阵）
- * 使用 ViewerComponents 聚合核心组件，将启动过程拆分为小方法
+ * 通过策略模式支持不同的旋转算法(四元数/矩阵)
+ * 使用 ViewerComponents 聚合核心组件,将启动过程拆分为小方法
  * </p>
  *
  * @author bingbaihanji
@@ -46,11 +46,13 @@ import java.net.URL;
 public class Fx3DViewerApp extends WindowsThemeJavaFXApp {
 
     private final RotationStrategy rotationStrategy;
+
     private final String windowTitle;
+
     private final ViewerComponents c = new ViewerComponents();
 
     /**
-     * 无参构造器，供 GraalVM native-image 反射实例化使用
+     * 无参构造器,供 GraalVM native-image 反射实例化使用
      */
     public Fx3DViewerApp() {
         this(new QuaternionRotation(), "Fx3DView");
@@ -88,11 +90,11 @@ public class Fx3DViewerApp extends WindowsThemeJavaFXApp {
         c.cameraSystem = new CameraSystem(rotationStrategy);
         c.viewingAxes = new ViewingAxes(180.0);
         c.lightManager = new LightManager(c.sceneManager.getWorld());
-        // 方向光默认关闭，不调用 attachToScene()，由用户通过菜单手动开启
+        // 方向光默认关闭,不调用 attachToScene(),由用户通过菜单手动开启
         c.statusBar = new StatusBar(c.cameraSystem, c.sceneManager);
         c.modelInfoPanel = new ModelInfoPanel();
 
-        // 创建导入器注册表并注册 OBJ 格式（新增格式在此注册即可）
+        // 创建导入器注册表并注册 OBJ 格式(新增格式在此注册即可)
         c.importerRegistry = new ImporterRegistry();
         c.importerRegistry.register(ObjImporter.SUPPORTED_EXT, ObjImporter::new);
         c.modelLoadService = new ModelLoadService(
@@ -125,7 +127,7 @@ public class Fx3DViewerApp extends WindowsThemeJavaFXApp {
      * 创建菜单和UI布局
      */
     private void createMenuAndLayout() {
-        // 菜单事件处理器（实例级状态管理）
+        // 菜单事件处理器(实例级状态管理)
         c.menuEvent = new MenuEvent();
         c.menuNode = new MenuNode();
 
@@ -144,7 +146,7 @@ public class Fx3DViewerApp extends WindowsThemeJavaFXApp {
     }
 
     /**
-     * 绑定拖放加载（含进度条绑定）
+     * 绑定拖放加载(含进度条绑定)
      */
     private void attachDragDrop() {
         c.dragDrop = new DragDropHandler(c.modelLoadService, c.importerRegistry);
@@ -152,7 +154,7 @@ public class Fx3DViewerApp extends WindowsThemeJavaFXApp {
     }
 
     /**
-     * 安装新模型前清理依赖旧模型节点的可视化状态。
+     * 安装新模型前清理依赖旧模型节点的可视化状态.
      */
     private void beforeModelInstall() {
         c.menuEvent.resetModelVisualization(
@@ -185,7 +187,7 @@ public class Fx3DViewerApp extends WindowsThemeJavaFXApp {
     }
 
     /**
-     * 切换主题（标题栏 + 菜单 + 背景 + 状态栏 + 信息面板）
+     * 切换主题(标题栏 + 菜单 + 背景 + 状态栏 + 信息面板)
      */
     private void toggleTheme(Stage primaryStage) {
         toggleDarkTitleBar(primaryStage);
@@ -249,7 +251,7 @@ public class Fx3DViewerApp extends WindowsThemeJavaFXApp {
         });
         c.menuEvent.setupPresetViews(c.menuNode, c.cameraSystem, c.viewingAxes);
         c.menuEvent.menuToggleOrtho(c.menuNode, c.cameraSystem, subScene);
-        // 同步菜单勾选状态与相机实际投影模式（多视口切换等情况可能程序化切回透视）
+        // 同步菜单勾选状态与相机实际投影模式(多视口切换等情况可能程序化切回透视)
         c.cameraSystem.orthographicProperty().addListener((obs, old, isOrtho) ->
                 c.menuNode.getOrthoToggle().setSelected(isOrtho));
         c.menuEvent.menuResetView(c.menuNode, c.cameraSystem, c.viewingAxes, c.mainLayout);
@@ -277,7 +279,7 @@ public class Fx3DViewerApp extends WindowsThemeJavaFXApp {
     }
 
     /**
-     * 设置拖拽旋转后的同步回调（迷你轴 + 点云 billboard）
+     * 设置拖拽旋转后的同步回调(迷你轴 + 点云 billboard)
      */
     private void setupMiniAxesSync() {
         c.mouseInteraction.setOnRotationUpdated(() -> {
@@ -285,7 +287,7 @@ public class Fx3DViewerApp extends WindowsThemeJavaFXApp {
             if (c.mainLayout.isMultiViewport() && c.mainLayout.getMultiViewportLayout() != null) {
                 c.mainLayout.getMultiViewportLayout().syncViewport0MiniAxes();
             }
-            // 刷新点云 billboard 方向，使其始终面朝相机
+            // 刷新点云 billboard 方向,使其始终面朝相机
             c.menuEvent.refreshPointCloud(
                     c.cameraSystem.getRotationStrategy().getRotationAffine());
         });

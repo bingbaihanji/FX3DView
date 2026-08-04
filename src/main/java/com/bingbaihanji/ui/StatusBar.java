@@ -22,36 +22,48 @@ import javafx.scene.shape.TriangleMesh;
 import javafx.scene.text.Font;
 
 /**
- * 状态栏：底部显示FPS、模型统计、相机位置、旋转策略、加载进度
+ * 状态栏:底部显示FPS,模型统计,相机位置,旋转策略,加载进度
  */
 public class StatusBar extends HBox implements Lifecycle {
 
     private static final double UPDATE_INTERVAL_NS = 200_000_000.0; // 200ms
+
     private static final Font STATUS_FONT = new Font("System", 11);
 
     private final Label fpsLabel = new Label("FPS: --");
+
     private final Label vertexLabel = new Label("顶点: --");
+
     private final Label faceLabel = new Label("面: --");
+
     private final Label sizeLabel = new Label("尺寸: --");
+
     private final Label camLabel = new Label("相机: --");
+
     private final Label stratLabel = new Label("策略: --");
 
     /**
-     * 加载进度条（默认隐藏，加载时显示）
+     * 加载进度条(默认隐藏,加载时显示)
      */
     private final ProgressBar progressBar = new ProgressBar(0);
+
     /**
-     * 取消加载按钮（默认隐藏，加载时显示）
+     * 取消加载按钮(默认隐藏,加载时显示)
      */
     private final Button cancelButton = new Button("取消");
 
     private final CameraSystem cameraSystem;
+
     private final Scene3DManager sceneManager;
+
     private final AnimationTimer fpsTimer;
+
     private long frameCount;
+
     private long lastUpdateNs;
+
     /**
-     * 当前绑定的加载任务（用于取消操作）
+     * 当前绑定的加载任务(用于取消操作)
      */
     private volatile Task<?> currentTask;
 
@@ -96,6 +108,7 @@ public class StatusBar extends HBox implements Lifecycle {
         updateCameraLabel();
 
         fpsTimer = new AnimationTimer() {
+
             @Override
             public void handle(long now) {
                 frameCount++;
@@ -163,7 +176,7 @@ public class StatusBar extends HBox implements Lifecycle {
     }
 
     /**
-     * 清空模型统计（无模型时）
+     * 清空模型统计(无模型时)
      */
     public void clearModelStats() {
         vertexLabel.setText("顶点: --");
@@ -195,8 +208,8 @@ public class StatusBar extends HBox implements Lifecycle {
     /**
      * 将状态栏的进度条绑定到后台加载任务
      * <p>
-     * 任务开始时显示进度条和取消按钮，任务结束（成功/失败/取消）时隐藏。
-     * 取消按钮调用 {@link Task#cancel()} 中断后台线程。
+     * 任务开始时显示进度条和取消按钮,任务结束(成功/失败/取消)时隐藏.
+     * 取消按钮调用 {@link Task#cancel()} 中断后台线程.
      * </p>
      *
      * @param task 后台加载任务
@@ -224,7 +237,7 @@ public class StatusBar extends HBox implements Lifecycle {
     }
 
     /**
-     * 隐藏进度条和取消按钮，解绑 progress 属性
+     * 隐藏进度条和取消按钮,解绑 progress 属性
      */
     private void hideProgress(Task<?> finishedTask) {
         if (currentTask != finishedTask) {
@@ -240,7 +253,7 @@ public class StatusBar extends HBox implements Lifecycle {
     // ==================== 辅助 ====================
 
     /**
-     * 应用主题：isDark=true深色，false浅色
+     * 应用主题:isDark=true深色,false浅色
      */
     public void applyTheme(boolean isDark) {
         String bg = isDark ? "#2b2b2b" : "#e0e0e0";

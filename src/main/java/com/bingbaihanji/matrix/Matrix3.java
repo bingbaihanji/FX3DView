@@ -4,57 +4,62 @@ import java.util.Objects;
 
 /// # 高性能 3x3 三维旋转矩阵实现
 ///
-/// 添加原地操作方法，减少GC压力
+/// 添加原地操作方法,减少GC压力
 ///
 /// ## 矩阵与向量关系
 ///
-/// `Matrix3` 表示 3D 空间中的线性变换(如旋转)。对于一个 3D 向量 `(x, y, z)`，当它与 `Matrix3` 矩阵相乘时，会得到一个新的向量 `(x', y', z')`：
+/// `Matrix3` 表示 3D 空间中的线性变换(如旋转).对于一个 3D 向量 `(x, y, z)`,当它与 `Matrix3` 矩阵相乘时,会得到一个新的向量 `(x', y', z')`:
 ///
 /// ```
 /// (x', y', z') = Matrix3 × (x, y, z)
 /// ```
 ///
-/// 具体计算方式：
+/// 具体计算方式:
 ///
 /// - `x' = m00 * x + m01 * y + m02 * z`
 /// - `y' = m10 * x + m11 * y + m12 * z`
 /// - `z' = m20 * x + m21 * y + m22 * z`
 ///
-/// 每个元素的具体作用取决于矩阵所表示的变换类型（如**旋转**、**缩放**等）。
+/// 每个元素的具体作用取决于矩阵所表示的变换类型(如**旋转**,**缩放**等).
 ///
 /// ## 旋转矩阵示例
 ///
-/// 绕 X 轴旋转矩阵（`rotationX`），θ 为旋转角度：
+/// 绕 X 轴旋转矩阵(`rotationX`),θ 为旋转角度:
 ///
 /// ```
-/// [ 1      0       0    ]  ← 第0行（x' 只由原x决定，不受y、z影响）
-/// [ 0    cosθ    -sinθ   ]  ← 第1行（y' 由原y的cosθ分量和原z的-sinθ分量组合）
-/// [ 0    sinθ     cosθ   ]  ← 第2行（z' 由原y的sinθ分量和原z的cosθ分量组合）
+/// [ 1      0       0    ]  ← 第0行(x' 只由原x决定,不受y,z影响)
+/// [ 0    cosθ    -sinθ   ]  ← 第1行(y' 由原y的cosθ分量和原z的-sinθ分量组合)
+/// [ 0    sinθ     cosθ   ]  ← 第2行(z' 由原y的sinθ分量和原z的cosθ分量组合)
 /// ```
 public final class Matrix3 {
 
     /**
-     * 向量归一化的误差阈值，用于判断轴向量是否为单位向量
+     * 向量归一化的误差阈值,用于判断轴向量是否为单位向量
      */
     private static final double NORMALIZE_THRESHOLD = 1e-6;
+
     /**
-     * 行列式的极小值阈值，用于判断矩阵是否可逆
+     * 行列式的极小值阈值,用于判断矩阵是否可逆
      */
     private static final double DETERMINANT_THRESHOLD = 1e-12;
+
     /**
-     * SLERP中复用的临时矩阵，避免每次创建新对象
+     * SLERP中复用的临时矩阵,避免每次创建新对象
      */
     private static final Matrix3 tempMatrix = new Matrix3();
-    public double m00, m01, m02;  // 第0列(m00)、第1列(m01)、第2列(m02)的x分量
-    // 其中：
+
+    public double m00, m01, m02;  // 第0列(m00),第1列(m01),第2列(m02)的x分量
+
+    // 其中:
 // 第0列 (m00, m10, m20) 代表变换后新X轴的单位向量
 // 第1列 (m01, m11, m21) 代表变换后新Y轴的单位向量
 // 第2列 (m02, m12, m22) 代表变换后新Z轴的单位向量
-    public double m10, m11, m12;  // 第0列(m10)、第1列(m11)、第2列(m12)的y分量
-    public double m20, m21, m22;  // 第0列(m20)、第1列(m21)、第2列(m22)的z分量
+    public double m10, m11, m12;  // 第0列(m10),第1列(m11),第2列(m12)的y分量
+
+    public double m20, m21, m22;  // 第0列(m20),第1列(m21),第2列(m22)的z分量
 
     /**
-     * 默认构造函数，初始化为单位矩阵
+     * 默认构造函数,初始化为单位矩阵
      */
     public Matrix3() {
         identity();
@@ -77,7 +82,7 @@ public final class Matrix3 {
     }
 
     /**
-     * 静态方法：创建单位矩阵
+     * 静态方法:创建单位矩阵
      */
     public static Matrix3 identityMatrix() {
         return new Matrix3(
@@ -87,17 +92,17 @@ public final class Matrix3 {
     }
 
     /**
-     * 根据罗德里格斯旋转公式，生成绕指定轴旋转指定角度的3x3旋转矩阵
+     * 根据罗德里格斯旋转公式,生成绕指定轴旋转指定角度的3x3旋转矩阵
      * <p>
-     * 该方法使用罗德里格斯旋转公式(Rodrigues' Rotation Formula)计算旋转矩阵：
+     * 该方法使用罗德里格斯旋转公式(Rodrigues' Rotation Formula)计算旋转矩阵:
      * <pre>
      * R = I + sin(θ)·K + (1 - cos(θ))·K²
      * </pre>
-     * 其中：
+     * 其中:
      * <ul>
-     *   <li>I：3×3单位矩阵</li>
-     *   <li>θ：旋转角度（弧度）</li>
-     *   <li>K：旋转轴向量k的反对称矩阵：
+     *   <li>I:3×3单位矩阵</li>
+     *   <li>θ:旋转角度(弧度)</li>
+     *   <li>K:旋转轴向量k的反对称矩阵:
      *     <pre>
      *     K = [ 0   -kz   ky ]
      *         [ kz   0   -kx ]
@@ -106,10 +111,10 @@ public final class Matrix3 {
      *   </li>
      * </ul>
      * <p>
-     * 如果输入的旋转轴向量未归一化，方法内部会自动进行归一化处理。
+     * 如果输入的旋转轴向量未归一化,方法内部会自动进行归一化处理.
      *
-     * @param axis  旋转轴向量，不能为null，支持非单位向量（内部自动归一化）
-     * @param angle 旋转角度，以弧度为单位
+     * @param axis  旋转轴向量,不能为null,支持非单位向量(内部自动归一化)
+     * @param angle 旋转角度,以弧度为单位
      * @return 绕指定轴旋转指定角度的3x3旋转矩阵
      * @throws NullPointerException 如果axis参数为null
      */
@@ -118,7 +123,7 @@ public final class Matrix3 {
         double x = axis.x, y = axis.y, z = axis.z;
         double lenSq = x * x + y * y + z * z;
 
-        // 若轴向量未归一化，执行归一化操作
+        // 若轴向量未归一化,执行归一化操作
         if (Math.abs(lenSq - 1.0) > NORMALIZE_THRESHOLD) {
             double invLen = 1.0 / Math.sqrt(lenSq);
             x *= invLen;
@@ -148,9 +153,9 @@ public final class Matrix3 {
     /**
      * 计算绕任意轴旋转向量的旋转矩阵
      *
-     * @param axis   旋转轴向量，必须是非空的单位向量或可归一化的向量
-     * @param angle  旋转角度，以弧度为单位
-     * @param result 存储计算结果的3x3矩阵，不能为null
+     * @param axis   旋转轴向量,必须是非空的单位向量或可归一化的向量
+     * @param angle  旋转角度,以弧度为单位
+     * @param result 存储计算结果的3x3矩阵,不能为null
      */
     public static void rotation(Vector3 axis, double angle, Matrix3 result) {
         Objects.requireNonNull(axis, "旋转轴向量axis不能为空");
@@ -158,7 +163,7 @@ public final class Matrix3 {
 
         double x = axis.x, y = axis.y, z = axis.z;
         double lenSq = x * x + y * y + z * z;
-        // 如果旋转轴向量不是单位向量，则进行归一化处理
+        // 如果旋转轴向量不是单位向量,则进行归一化处理
         if (Math.abs(lenSq - 1.0) > NORMALIZE_THRESHOLD) {
             double invLen = 1.0 / Math.sqrt(lenSq);
             x *= invLen;
@@ -184,7 +189,7 @@ public final class Matrix3 {
     }
 
     /**
-     * 静态矩阵乘法，计算两个3x3矩阵的乘积（a * b）
+     * 静态矩阵乘法,计算两个3x3矩阵的乘积(a * b)
      */
     public static Matrix3 multiply(Matrix3 a, Matrix3 b) {
         Objects.requireNonNull(a, "左乘矩阵a不能为空");
@@ -204,10 +209,10 @@ public final class Matrix3 {
 
     /**
      * @Description: 创建一个绕X轴旋转的3x3旋转矩阵
-     * @param: angle - 旋转角度（弧度制）
+     * @param: angle - 旋转角度(弧度制)
      * @return: 绕X轴旋转的3x3旋转矩阵
      * <p>
-     * 矩阵构成：
+     * 矩阵构成:
      * <pre>
      * [ 1   0     0  ]
      * [ 0  cos  -sin ]
@@ -225,10 +230,10 @@ public final class Matrix3 {
 
     /**
      * @Description: 创建一个绕Y轴旋转的3x3旋转矩阵
-     * @param: angle - 旋转角度（弧度制）
+     * @param: angle - 旋转角度(弧度制)
      * @return: 绕Y轴旋转的3x3旋转矩阵
      * <p>
-     * 矩阵构成：
+     * 矩阵构成:
      * <pre>
      * [ cos  0  sin ]
      * [ 0    1   0  ]
@@ -245,10 +250,10 @@ public final class Matrix3 {
 
     /**
      * @Description: 创建一个绕Z轴旋转的3x3旋转矩阵
-     * @param: angle - 旋转角度（弧度制）
+     * @param: angle - 旋转角度(弧度制)
      * @return: 绕Z轴旋转的3x3旋转矩阵
      * <p>
-     * 矩阵构成：
+     * 矩阵构成:
      * <pre>
      * [ cos -sin 0 ]
      * [ sin  cos 0 ]
@@ -265,11 +270,11 @@ public final class Matrix3 {
     }
 
     /**
-     * 从欧拉角创建3x3旋转矩阵，旋转顺序为Y-X-Z
+     * 从欧拉角创建3x3旋转矩阵,旋转顺序为Y-X-Z
      *
-     * @param xAngle 绕X轴的旋转角度（弧度）
-     * @param yAngle 绕Y轴的旋转角度（弧度）
-     * @param zAngle 绕Z轴的旋转角度（弧度）
+     * @param xAngle 绕X轴的旋转角度(弧度)
+     * @param yAngle 绕Y轴的旋转角度(弧度)
+     * @param zAngle 绕Z轴的旋转角度(弧度)
      * @return 表示组合旋转的3x3矩阵
      */
     public static Matrix3 fromEulerAngles(double xAngle, double yAngle, double zAngle) {
@@ -283,11 +288,11 @@ public final class Matrix3 {
     }
 
     /**
-     * 矩阵元素的线性插值（LERP，非球面插值）
+     * 矩阵元素的线性插值(LERP,非球面插值)
      * <p>
-     * 注意：线性插值不保持正交性，多次插值后矩阵会退化。
-     * 仅适用于小幅度的阻尼/平滑操作，此时误差可忽略。
-     * 需要保持旋转矩阵正交性时请使用 {@link #slerp(Matrix3, Matrix3, double)}。
+     * 注意:线性插值不保持正交性,多次插值后矩阵会退化.
+     * 仅适用于小幅度的阻尼/平滑操作,此时误差可忽略.
+     * 需要保持旋转矩阵正交性时请使用 {@link #slerp(Matrix3, Matrix3, double)}.
      *
      * @param a 插值起始矩阵
      * @param b 插值结束矩阵
@@ -350,12 +355,12 @@ public final class Matrix3 {
     }
 
     /**
-     * 球面线性插值（SLERP）——在SO(3)流形上对两个旋转矩阵进行插值
+     * 球面线性插值(SLERP)——在SO(3)流形上对两个旋转矩阵进行插值
      * <p>
-     * 算法：计算相对旋转 R_rel = A^T * B，提取其轴-角表示，
-     * 对角度进行线性插值（t * θ），再由插值后的轴角构造旋转矩阵，
-     * 最终结果为 A * R_interpolated。
-     * 这保证了插值结果始终是合法的旋转矩阵（正交且行列式为1）。
+     * 算法:计算相对旋转 R_rel = A^T * B,提取其轴-角表示,
+     * 对角度进行线性插值(t * θ),再由插值后的轴角构造旋转矩阵,
+     * 最终结果为 A * R_interpolated.
+     * 这保证了插值结果始终是合法的旋转矩阵(正交且行列式为1).
      *
      * @param a 起始旋转矩阵
      * @param b 结束旋转矩阵
@@ -373,7 +378,7 @@ public final class Matrix3 {
             return new Matrix3().set(b);
         }
 
-        // 计算相对旋转：R_rel = A^T * B
+        // 计算相对旋转:R_rel = A^T * B
         Matrix3 aInv = a.transpose(); // 旋转矩阵的逆 = 转置
         Matrix3 rRel = multiply(aInv, b);
 
@@ -387,7 +392,7 @@ public final class Matrix3 {
         // 由插值后的轴角构造旋转矩阵
         Matrix3 rInterp = rotation(axis, interpAngle);
 
-        // 最终结果：A * R_interpolated
+        // 最终结果:A * R_interpolated
         return multiply(a, rInterp);
     }
 
@@ -426,13 +431,13 @@ public final class Matrix3 {
     }
 
     /**
-     * 从旋转矩阵中提取轴-角表示（用于SLERP等需要轴角插值的场景）
+     * 从旋转矩阵中提取轴-角表示(用于SLERP等需要轴角插值的场景)
      * <p>
      * 旋转角度 θ = acos((trace(R) - 1) / 2)
      * 旋转轴由 R - R^T 的反对称部分提取
      *
-     * @param outAxis 输出的旋转轴向量（单位向量），不能为null
-     * @return 旋转角度（弧度），若矩阵接近单位矩阵则返回0
+     * @param outAxis 输出的旋转轴向量(单位向量),不能为null
+     * @return 旋转角度(弧度),若矩阵接近单位矩阵则返回0
      */
     public double toAxisAngle(Vector3 outAxis) {
         Objects.requireNonNull(outAxis, "输出轴向量不能为空");
@@ -441,7 +446,7 @@ public final class Matrix3 {
         cos = Math.max(-1.0, Math.min(1.0, cos)); // 防止浮点误差越界
         double angle = Math.acos(cos);
 
-        // 角度接近0时，旋转轴可任意取（默认为Y轴）
+        // 角度接近0时,旋转轴可任意取(默认为Y轴)
         if (Math.abs(angle) < 1e-10) {
             outAxis.set(0, 1, 0);
             return 0.0;
@@ -449,7 +454,7 @@ public final class Matrix3 {
 
         double sin = Math.sin(angle);
         if (Math.abs(sin) < 1e-10) {
-            // 角度接近180°，从对角线元素推导轴分量
+            // 角度接近180°,从对角线元素推导轴分量
             double x = Math.sqrt(Math.max(0, (m00 - cos) / (1 - cos)));
             double y = Math.sqrt(Math.max(0, (m11 - cos) / (1 - cos)));
             double z = Math.sqrt(Math.max(0, (m22 - cos) / (1 - cos)));
@@ -530,7 +535,7 @@ public final class Matrix3 {
     }
 
     /**
-     * 就地矩阵乘法，直接修改当前矩阵为this * other的结果
+     * 就地矩阵乘法,直接修改当前矩阵为this * other的结果
      */
     public Matrix3 mulSelf(Matrix3 other) {
         Objects.requireNonNull(other, "右乘矩阵other不能为空");

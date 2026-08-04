@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * 键盘交互处理器
  * <p>
- * 处理键盘快捷键：
+ * 处理键盘快捷键:
  * - Z: 重置相机
  * - X: 显示/隐藏坐标轴
  * - V: 显示/隐藏模型
@@ -26,8 +26,11 @@ import lombok.extern.slf4j.Slf4j;
 public class KeyboardInteraction implements Lifecycle {
 
     private final CameraSystem cameraSystem;
+
     private final Scene3DManager sceneManager;
+
     private final ViewingAxes viewingAxes;
+
     private final AutoRotationAnimation autoRotation;
 
     private Runnable onMultiViewportToggle;

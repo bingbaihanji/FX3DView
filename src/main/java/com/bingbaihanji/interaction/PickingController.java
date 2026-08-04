@@ -18,27 +18,27 @@ public class PickingController {
     // 当前选中的 Mesh
     private MeshView pickedMesh;
 
-    // 记录原始材质（用于还原）
+    // 记录原始材质(用于还原)
     private Material pickedOldMaterial;
 
-    // 是否处于网格模式（仅对当前选中 Mesh）
+    // 是否处于网格模式(仅对当前选中 Mesh)
     private boolean pickedWireframe = false;
 
-    // 记录原始 DrawMode（用于还原）
+    // 记录原始 DrawMode(用于还原)
     private DrawMode pickedOldDrawMode;
 
 
-    // 选中模型高亮（状态型，高对比，不依赖光照）
+    // 选中模型高亮(状态型,高对比,不依赖光照)
 
     public void highlightPickedMesh(MeshView mesh) {
 
-        // === 情况 1：再次点击同一个 Mesh → 还原 ===
+        // === 情况 1:再次点击同一个 Mesh → 还原 ===
         if (mesh == pickedMesh) {
             restorePickedMesh();
             return;
         }
 
-        // === 情况 2：点了新的 Mesh，先还原旧的 ===
+        // === 情况 2:点了新的 Mesh,先还原旧的 ===
         restorePickedMesh();
 
         pickedMesh = mesh;
@@ -46,21 +46,21 @@ public class PickingController {
         pickedOldDrawMode = mesh.getDrawMode();
         pickedWireframe = false;
 
-        // ===== 构建“选中态材质” =====
+        // ===== 构建"选中态材质" =====
         PhongMaterial selectedMat = new PhongMaterial();
 
-        // ① 纯选中色：完全去掉原有贴图与固有色
+        // ① 纯选中色:完全去掉原有贴图与固有色
         selectedMat.setDiffuseColor(Color.DARKORANGE);
 
-        // ② 极弱反光：只保留“轮廓存在感”
+        // ② 极弱反光:只保留"轮廓存在感"
         selectedMat.setSpecularColor(Color.DARKORANGE.deriveColor(
                 0,      // hue
                 1.0,    // saturation
-                0.6,    // brightness（刻意压暗）
+                0.6,    // brightness(刻意压暗)
                 1.0     // opacity
         ));
 
-        // ③ 钝高光，避免“亮斑”
+        // ③ 钝高光,避免"亮斑"
         selectedMat.setSpecularPower(8);
         mesh.setMaterial(selectedMat);
     }
@@ -108,10 +108,10 @@ public class PickingController {
             pickedMesh.setDrawMode(DrawMode.LINE);
             pickedMesh.setCullFace(CullFace.NONE);
 
-            // 用纯色材质，避免高光干扰
+            // 用纯色材质,避免高光干扰
             pickedMesh.setMaterial(new PhongMaterial(Color.CYAN));
 
-            // 轻微放大，避免深度冲突
+            // 轻微放大,避免深度冲突
             pickedMesh.setScaleX(1.001);
             pickedMesh.setScaleY(1.001);
             pickedMesh.setScaleZ(1.001);
@@ -120,11 +120,11 @@ public class PickingController {
 
         } else {
 
-            // 还原实体模式，但保持高亮状态
+            // 还原实体模式,但保持高亮状态
             pickedMesh.setDrawMode(pickedOldDrawMode);
             pickedMesh.setCullFace(CullFace.BACK);
 
-            // 恢复高亮材质（橙色），而不是原始材质
+            // 恢复高亮材质(橙色),而不是原始材质
             PhongMaterial selectedMat = new PhongMaterial();
             selectedMat.setDiffuseColor(Color.DARKORANGE);
             selectedMat.setSpecularColor(Color.DARKORANGE.deriveColor(

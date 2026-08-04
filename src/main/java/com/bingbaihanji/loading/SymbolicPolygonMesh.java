@@ -6,19 +6,20 @@ package com.bingbaihanji.loading;
  * points depend on other variables and they can be updated appropriately.
  */
 public class SymbolicPolygonMesh {
+
     // 符号化点数组
     public SymbolicPointArray points;
 
     // 纹理坐标数组
     public float[] texCoords;
 
-    // 面数据数组，每个面包含顶点和纹理坐标索引
+    // 面数据数组,每个面包含顶点和纹理坐标索引
     public int[][] faces;
 
     // 面平滑组数组
     public int[] faceSmoothingGroups;
 
-    // 面边数缓存（延迟计算）
+    // 面边数缓存(延迟计算)
     private int numEdgesInFaces = -1;
 
     public SymbolicPolygonMesh(SymbolicPointArray points, float[] texCoords,

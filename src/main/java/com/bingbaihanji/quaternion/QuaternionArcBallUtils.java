@@ -3,17 +3,17 @@ package com.bingbaihanji.quaternion;
 import javafx.scene.transform.Affine;
 
 /**
- * 四元数ArcBall工具类（实例模式，避免静态可变缓存导致的线程安全问题）
+ * 四元数ArcBall工具类(实例模式,避免静态可变缓存导致的线程安全问题)
  * <p>
- * 提供与JavaFX Affine变换的集成，支持高性能的3D旋转操作。
- * 每个 RotationStrategy 实例持有自己的 QuaternionArcBallUtils，
- * 消除了静态 arcBall 缓存的竞态条件。
+ * 提供与JavaFX Affine变换的集成,支持高性能的3D旋转操作.
+ * 每个 RotationStrategy 实例持有自己的 QuaternionArcBallUtils,
+ * 消除了静态 arcBall 缓存的竞态条件.
  * </p>
  */
 public class QuaternionArcBallUtils {
 
     /**
-     * 缓存的ArcBall实例（实例级，非static，线程安全）
+     * 缓存的ArcBall实例(实例级,非static,线程安全)
      */
     private QuaternionArcBall arcBall;
 
@@ -25,7 +25,7 @@ public class QuaternionArcBallUtils {
         this.arcBall = new QuaternionArcBall(width, height);
     }
 
-    // ==================== 静态工具方法（无状态，仅做数据转换） ====================
+    // ==================== 静态工具方法(无状态,仅做数据转换) ====================
 
     /**
      * 从仿射变换中提取旋转四元数
@@ -66,10 +66,10 @@ public class QuaternionArcBallUtils {
         affine.setMzz(matrix[2][2]);
     }
 
-    // ==================== 实例方法（持有 ArcBall 状态） ====================
+    // ==================== 实例方法(持有 ArcBall 状态) ====================
 
     /**
-     * 计算ArcBall旋转四元数（返回新四元数）
+     * 计算ArcBall旋转四元数(返回新四元数)
      */
     public Quaternion getArcBallRotationQuaternion(int width, int height,
                                                    double x1, double y1,
@@ -82,7 +82,7 @@ public class QuaternionArcBallUtils {
     }
 
     /**
-     * 计算ArcBall旋转四元数（原地操作，避免分配新对象）
+     * 计算ArcBall旋转四元数(原地操作,避免分配新对象)
      */
     public void getArcBallRotationQuaternion(int width, int height,
                                              double x1, double y1,

@@ -18,7 +18,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * 截图处理器：负责 SubScene 快照、剪贴板复制和文件保存
+ * 截图处理器:负责 SubScene 快照,剪贴板复制和文件保存
  *
  * @author bingbaihanji
  */
@@ -26,7 +26,7 @@ import java.io.IOException;
 public class ScreenshotHandler {
 
     /**
-     * 背景颜色选择器（懒加载复用）
+     * 背景颜色选择器(懒加载复用)
      */
     private BackgroundColorPicker backgroundColorPicker;
 

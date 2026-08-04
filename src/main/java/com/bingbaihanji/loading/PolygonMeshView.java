@@ -18,8 +18,11 @@ import java.util.Arrays;
  * A MeshView node for Polygon Meshes
  */
 public class PolygonMeshView extends Parent {
+
     private static final boolean DEBUG = false;
+
     private final MeshView meshView = new MeshView();
+
     /**
      * Defines the material this {@code Shape3D}.
      * The default material is null. If {@code Material} is null, a PhongMaterial
@@ -28,52 +31,72 @@ public class PolygonMeshView extends Parent {
      * @defaultValue null
      */
     private final ObjectProperty<Material> materialProperty = new SimpleObjectProperty<Material>();
+
+    private final ArrayChangeListener<ObservableFloatArray> meshPointsListener = (t, bln, i, i1) -> {
+        pointsDirty = true;
+        updateMesh();
+    };
+
+    private final ArrayChangeListener<ObservableFloatArray> meshTexCoordListener = (t, bln, i, i1) -> {
+        texCoordsDirty = true;
+        updateMesh();
+    };
+
     private TriangleMesh triangleMesh = new TriangleMesh();
+
     // this is null if no subdivision is happening (i.e. subdivisionLevel = 0);
     private SubdivisionMesh subdivisionMesh;
+
     private boolean pointsDirty = true;
+
     private boolean pointsSizeDirty = true;
+
     private boolean texCoordsDirty = true;
+
     private boolean facesDirty = true;
+
     /**
      * Specifies the 3D mesh data of this {@code MeshView}.
      *
      * @defaultValue null
      */
     private ObjectProperty<PolygonMesh> meshProperty;
+
     /**
      * Defines the drawMode this {@code Shape3D}.
      *
      * @defaultValue DrawMode.FILL
      */
     private ObjectProperty<DrawMode> drawMode;
+
     /**
      * Defines the drawMode this {@code Shape3D}.
      *
      * @defaultValue CullFace.BACK
      */
     private ObjectProperty<CullFace> cullFace;
+
     /**
      * Number of iterations of Catmull Clark subdivision to apply to the mesh
      *
      * @defaultValue 0
      */
     private SimpleIntegerProperty subdivisionLevelProperty;
+
     /**
      * Texture mapping boundary rule for Catmull Clark subdivision applied to the mesh
      *
      * @defaultValue BoundaryMode.CREASE_EDGES
      */
-    private SimpleObjectProperty<SubdivisionMesh.BoundaryMode> boundaryMode;    private final ArrayChangeListener<ObservableFloatArray> meshPointsListener = (t, bln, i, i1) -> {
-        pointsDirty = true;
-        updateMesh();
-    };
+    private SimpleObjectProperty<SubdivisionMesh.BoundaryMode> boundaryMode;
+
     /**
      * Texture mapping smoothness option for Catmull Clark subdivision applied to the mesh
      *
      * @defaultValue MapBorderMode.NOT_SMOOTH
      */
     private SimpleObjectProperty<SubdivisionMesh.MapBorderMode> mapBorderMode;
+
     public PolygonMeshView() {
         meshView.materialProperty().bind(materialProperty());
         getChildren().add(meshView);
@@ -128,6 +151,7 @@ public class PolygonMeshView extends Parent {
     public final ObjectProperty<DrawMode> drawModeProperty() {
         if (drawMode == null) {
             drawMode = new SimpleObjectProperty<DrawMode>(PolygonMeshView.this, "drawMode", DrawMode.FILL) {
+
                 @Override
                 protected void invalidated() {
                     meshView.setDrawMode(get());
@@ -141,10 +165,7 @@ public class PolygonMeshView extends Parent {
 
     public final CullFace getCullFace() {
         return cullFace == null ? CullFace.BACK : cullFace.get();
-    }    private final ArrayChangeListener<ObservableFloatArray> meshTexCoordListener = (t, bln, i, i1) -> {
-        texCoordsDirty = true;
-        updateMesh();
-    };
+    }
 
     public final void setCullFace(CullFace value) {
         cullFaceProperty().set(value);
@@ -153,6 +174,7 @@ public class PolygonMeshView extends Parent {
     public final ObjectProperty<CullFace> cullFaceProperty() {
         if (cullFace == null) {
             cullFace = new SimpleObjectProperty<CullFace>(PolygonMeshView.this, "cullFace", CullFace.BACK) {
+
                 @Override
                 protected void invalidated() {
                     meshView.setCullFace(get());
@@ -185,12 +207,14 @@ public class PolygonMeshView extends Parent {
     public SimpleIntegerProperty subdivisionLevelProperty() {
         if (subdivisionLevelProperty == null) {
             subdivisionLevelProperty = new SimpleIntegerProperty(getSubdivisionLevel()) {
+
                 @Override
                 protected void invalidated() {
                     // create SubdivisionMesh if subdivisionLevel is greater than 0
                     if ((getSubdivisionLevel() > 0) && (subdivisionMesh == null)) {
                         subdivisionMesh = new SubdivisionMesh(getMesh(), getSubdivisionLevel(), getBoundaryMode(), getMapBorderMode());
-                        subdivisionMesh.getOriginalMesh().getPoints().addListener((t, bln, i, i1) -> subdivisionMesh.update());
+                        subdivisionMesh.getOriginalMesh().getPoints()
+                                .addListener((t, bln, i, i1) -> subdivisionMesh.update());
                         setMesh(subdivisionMesh);
                     }
                     if (subdivisionMesh != null) {
@@ -216,6 +240,7 @@ public class PolygonMeshView extends Parent {
     public SimpleObjectProperty<SubdivisionMesh.BoundaryMode> boundaryModeProperty() {
         if (boundaryMode == null) {
             boundaryMode = new SimpleObjectProperty<SubdivisionMesh.BoundaryMode>(getBoundaryMode()) {
+
                 @Override
                 protected void invalidated() {
                     if (subdivisionMesh != null) {
@@ -241,6 +266,7 @@ public class PolygonMeshView extends Parent {
     public SimpleObjectProperty<SubdivisionMesh.MapBorderMode> mapBorderModeProperty() {
         if (mapBorderMode == null) {
             mapBorderMode = new SimpleObjectProperty<SubdivisionMesh.MapBorderMode>(getMapBorderMode()) {
+
                 @Override
                 protected void invalidated() {
                     if (subdivisionMesh != null) {
@@ -410,13 +436,16 @@ public class PolygonMeshView extends Parent {
             System.out.println("CREATING TRIANGLE MESH");
         }
         if (DEBUG) {
-            System.out.println("    points    = " + Arrays.toString(((TriangleMesh) meshView.getMesh()).getPoints().toArray(null)));
+            System.out.println("    points    = " + Arrays.toString(((TriangleMesh) meshView.getMesh()).getPoints()
+                    .toArray(null)));
         }
         if (DEBUG) {
-            System.out.println("    texCoords = " + Arrays.toString(((TriangleMesh) meshView.getMesh()).getTexCoords().toArray(null)));
+            System.out.println("    texCoords = " + Arrays.toString(((TriangleMesh) meshView.getMesh()).getTexCoords()
+                    .toArray(null)));
         }
         if (DEBUG) {
-            System.out.println("    faces     = " + Arrays.toString(((TriangleMesh) meshView.getMesh()).getFaces().toArray(null)));
+            System.out.println("    faces     = " + Arrays.toString(((TriangleMesh) meshView.getMesh()).getFaces()
+                    .toArray(null)));
         }
 
         if (meshView.getMesh() != triangleMesh) {
@@ -431,10 +460,6 @@ public class PolygonMeshView extends Parent {
                         Math.pow(x2 - x1, 2) +
                         Math.pow(y2 - y1, 2));
     }
-
-
-
-
 
 
     // =========================================================================

@@ -15,10 +15,10 @@ import javafx.scene.shape.MeshView;
 /**
  * 鼠标交互处理器
  * <p>
- * 处理鼠标相关的交互事件：
- * - 左键拖拽：旋转（ArcBall）
- * - 右键拖拽：平移
- * - 滚轮：缩放
+ * 处理鼠标相关的交互事件:
+ * - 左键拖拽:旋转(ArcBall)
+ * - 右键拖拽:平移
+ * - 滚轮:缩放
  * </p>
  *
  * @author bingbaihanji
@@ -26,11 +26,15 @@ import javafx.scene.shape.MeshView;
 public class MouseInteraction {
 
     private final CameraSystem cameraSystem;
+
     private final ViewingAxes viewingAxes;
+
     private final PickingController pickingController;
 
     private double mousePosX, mousePosY;
+
     private double mouseOldX, mouseOldY;
+
     private double mouseDeltaX, mouseDeltaY;
 
 
@@ -42,7 +46,7 @@ public class MouseInteraction {
      * @param pickingController 拾取控制器
      */
     /**
-     * 旋转更新后的回调（用于多视口迷你轴同步等）
+     * 旋转更新后的回调(用于多视口迷你轴同步等)
      */
     private Runnable onRotationUpdated;
 
@@ -53,7 +57,7 @@ public class MouseInteraction {
     }
 
     /**
-     * 设置旋转更新回调（拖拽旋转后触发，用于多视口迷你轴同步）
+     * 设置旋转更新回调(拖拽旋转后触发,用于多视口迷你轴同步)
      */
     public void setOnRotationUpdated(Runnable callback) {
         this.onRotationUpdated = callback;
@@ -147,7 +151,7 @@ public class MouseInteraction {
 
 
     /**
-     * 处理鼠标点击事件（用于拾取）
+     * 处理鼠标点击事件(用于拾取)
      */
     private void handleMouseClicked(MouseEvent me) {
 
@@ -159,19 +163,19 @@ public class MouseInteraction {
         PickResult pickResult = me.getPickResult();
         Node hitNode = pickResult.getIntersectedNode();
 
-        // === 情况 1：点在 MeshView 上 ===
+        // === 情况 1:点在 MeshView 上 ===
         if (hitNode instanceof MeshView mesh) {
 
             boolean shift = me.isShiftDown();
             boolean ctrl = me.isControlDown();
 
-            // Shift 优先（操作当前对象）
+            // Shift 优先(操作当前对象)
             if (shift) {
                 pickingController.highlightPickedMesh(mesh); // 确保选中
                 pickingController.togglePickedWireframe();
 
             }
-            // Ctrl 次之（改变选中）
+            // Ctrl 次之(改变选中)
             else if (ctrl) {
                 pickingController.highlightPickedMesh(mesh);
             }
@@ -180,7 +184,7 @@ public class MouseInteraction {
             return;
         }
 
-        // === 情况 2：点在空白处 ===
+        // === 情况 2:点在空白处 ===
         if (me.isControlDown()) {
             pickingController.restorePickedMesh();
             me.consume();
@@ -196,14 +200,14 @@ public class MouseInteraction {
             delta = se.getDeltaX();
         }
 
-        // Ctrl+滚轮 → 调节视场角（FOV），正交模式下调节缩放
+        // Ctrl+滚轮 → 调节视场角(FOV),正交模式下调节缩放
         if (se.isControlDown()) {
             double fovDelta = delta * InteractionConfig.FOV_SPEED;
             cameraSystem.adjustFieldOfView(fovDelta);
             return;
         }
 
-        // 正交模式：缩放调节 Scale
+        // 正交模式:缩放调节 Scale
         if (cameraSystem.isOrthographic()) {
             double zoomFactor = 1.0 + delta * 0.001;
             if (se.isShiftDown()) {

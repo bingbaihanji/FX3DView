@@ -4,15 +4,18 @@ package com.bingbaihanji.loading;
 import java.util.Arrays;
 
 public class SubdividedPointArray extends SymbolicPointArray {
-    // 控制点数据（上一细分级别的点）
+
+    // 控制点数据(上一细分级别的点)
     private final float[] controlPoints;
 
     // 控制点索引和权重因子
     private final int[][] controlInds;      // 控制点索引数组
+
     private final float[][] controlFactors; // 控制点权重因子数组
 
     // 细分点索引和权重因子
     private final int[][] inds;             // 细分点索引数组
+
     private final float[][] factors;        // 细分点权重因子数组
 
     // 边界处理模式
@@ -35,7 +38,7 @@ public class SubdividedPointArray extends SymbolicPointArray {
     }
 
     /**
-     * 添加面点（Face Point）
+     * 添加面点(Face Point)
      * 在细分过程中为每个面创建的新点
      *
      * @param vertices 面的顶点索引数组
@@ -54,7 +57,7 @@ public class SubdividedPointArray extends SymbolicPointArray {
     }
 
     /**
-     * 添加边点（Edge Point）
+     * 添加边点(Edge Point)
      * 在细分过程中为每条边创建的新点
      *
      * @param facePoints 相邻面的面点索引数组
@@ -84,7 +87,7 @@ public class SubdividedPointArray extends SymbolicPointArray {
     }
 
     /**
-     * 添加控制点（Control Point）
+     * 添加控制点(Control Point)
      * 更新原始控制点的位置
      *
      * @param facePoints      相邻面的面点索引数组

@@ -16,30 +16,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 法线可视化：在模型三角面中心处沿法线方向绘制短线段
+ * 法线可视化:在模型三角面中心处沿法线方向绘制短线段
  * <p>
- * 使用两遍算法确保法线均匀覆盖全部网格：
- * 第一遍收集所有 MeshView 及其变换并统计总面数，
- * 第二遍按全局动态步长采样，避免前置网格耗尽配额导致后置网格无法显示。
+ * 使用两遍算法确保法线均匀覆盖全部网格:
+ * 第一遍收集所有 MeshView 及其变换并统计总面数,
+ * 第二遍按全局动态步长采样,避免前置网格耗尽配额导致后置网格无法显示.
  * </p>
  */
 public class NormalVisualizer {
 
     private static final int MAX_LINES = 6000;
-    private static final Color NORMAL_COLOR = Color.YELLOW;
 
-    private record MeshEntry(Transform toModelGroup, float[] points, int[] faces) {}
+    private static final Color NORMAL_COLOR = Color.YELLOW;
 
     /**
      * 为模型构建法线可视化
      * <p>
-     * 法线长度 = 模型包围盒对角线的 1%（最少 0.02），
-     * 粗细 = 长度的 1.2%（最少 0.001）。
-     * 通过两遍遍历确保法线均匀分布在全部子网格上。
+     * 法线长度 = 模型包围盒对角线的 1%(最少 0.02),
+     * 粗细 = 长度的 1.2%(最少 0.001).
+     * 通过两遍遍历确保法线均匀分布在全部子网格上.
      * </p>
      *
-     * @param modelGroup  模型根 Group，同时也是遍历起点
-     * @param targetGroup 法线圆柱体目标 Group（应与 modelGroup 在同一局部空间）
+     * @param modelGroup  模型根 Group,同时也是遍历起点
+     * @param targetGroup 法线圆柱体目标 Group(应与 modelGroup 在同一局部空间)
      */
     public static void buildNormalLines(Group modelGroup, Group targetGroup) {
         javafx.geometry.Bounds bounds = modelGroup.getBoundsInLocal();
@@ -54,13 +53,13 @@ public class NormalVisualizer {
     }
 
     /**
-     * 带自定义参数的法线构建（供外部精细控制）
+     * 带自定义参数的法线构建(供外部精细控制)
      */
     public static void buildNormalLines(Group modelGroup, Group targetGroup,
                                         double lineLength, double lineRadius) {
         targetGroup.getChildren().clear();
 
-        // 第一遍：收集所有有效网格及其累积变换
+        // 第一遍:收集所有有效网格及其累积变换
         List<MeshEntry> entries = new ArrayList<>();
         for (Node child : modelGroup.getChildren()) {
             collectEntries(child, child.getLocalToParentTransform(), entries);
@@ -69,7 +68,7 @@ public class NormalVisualizer {
             return;
         }
 
-        // 统计总面数，动态计算全局采样步长（保证总输出约 MAX_LINES 条，均匀分布）
+        // 统计总面数,动态计算全局采样步长(保证总输出约 MAX_LINES 条,均匀分布)
         int totalFaces = entries.stream().mapToInt(e -> e.faces().length / 6).sum();
         int stride = Math.max(1, totalFaces / MAX_LINES);
 
@@ -77,7 +76,7 @@ public class NormalVisualizer {
         mat.setDiffuseColor(NORMAL_COLOR);
         mat.setSpecularColor(Color.BLACK);
 
-        // 第二遍：按统一步长采样所有网格
+        // 第二遍:按统一步长采样所有网格
         int[] count = {0};
         for (MeshEntry entry : entries) {
             if (count[0] >= MAX_LINES) {
@@ -90,10 +89,10 @@ public class NormalVisualizer {
     /**
      * 递归收集所有 MeshView 及其到 modelGroup 局部空间的累积变换
      * <p>
-     * createConcatenation 语义：A.createConcatenation(B)(p) = B(A(p))，
-     * 即 A 先作用于点，再作用 B。
-     * 调用时 toModelGroup = childToParent.createConcatenation(parentToModelGroup)，
-     * 正确实现 child.local → parent.local → modelGroup.local 的链式变换。
+     * createConcatenation 语义:A.createConcatenation(B)(p) = B(A(p)),
+     * 即 A 先作用于点,再作用 B.
+     * 调用时 toModelGroup = childToParent.createConcatenation(parentToModelGroup),
+     * 正确实现 child.local → parent.local → modelGroup.local 的链式变换.
      * </p>
      */
     private static void collectEntries(Node node, Transform toModelGroup, List<MeshEntry> entries) {
@@ -140,7 +139,7 @@ public class NormalVisualizer {
             double v1x = points[vi1], v1y = points[vi1 + 1], v1z = points[vi1 + 2];
             double v2x = points[vi2], v2y = points[vi2 + 1], v2z = points[vi2 + 2];
 
-            // 面中心（MeshView 局部空间）
+            // 面中心(MeshView 局部空间)
             double cx = (v0x + v1x + v2x) / 3.0;
             double cy = (v0y + v1y + v2y) / 3.0;
             double cz = (v0z + v1z + v2z) / 3.0;
@@ -155,7 +154,9 @@ public class NormalVisualizer {
             if (nlen < 1e-9) {
                 continue;
             }
-            nx /= nlen; ny /= nlen; nz /= nlen;
+            nx /= nlen;
+            ny /= nlen;
+            nz /= nlen;
 
             // 变换到 modelGroup 局部空间
             Point3D pos = entry.toModelGroup().transform(cx, cy, cz);
@@ -168,7 +169,7 @@ public class NormalVisualizer {
             double dny = dir.getY() / dn;
             double dnz = dir.getZ() / dn;
 
-            // 法线中点坐标（偏移 5% standoff 避免与表面重叠）
+            // 法线中点坐标(偏移 5% standoff 避免与表面重叠)
             double standoff = lineLength * 0.05;
             double midX = pos.getX() + dnx * (standoff + lineLength / 2);
             double midY = pos.getY() + dny * (standoff + lineLength / 2);
@@ -176,11 +177,11 @@ public class NormalVisualizer {
 
             Cylinder cyl = new Cylinder(lineRadius, lineLength);
             cyl.setMaterial(mat);
-            // Translate 在前、Rotate 在后：JavaFX transforms 列表后项先作用于点
-            // 即 Rotate 先对圆柱做轴对齐，再由 Translate 移到目标位置
+            // Translate 在前,Rotate 在后:JavaFX transforms 列表后项先作用于点
+            // 即 Rotate 先对圆柱做轴对齐,再由 Translate 移到目标位置
             cyl.getTransforms().add(new Translate(midX, midY, midZ));
 
-            // 将默认 Y 轴圆柱旋转到法线方向：旋转轴 = Y × normal = (dnz, 0, -dnx)
+            // 将默认 Y 轴圆柱旋转到法线方向:旋转轴 = Y × normal = (dnz, 0, -dnx)
             double angle = Math.toDegrees(Math.acos(Math.max(-1.0, Math.min(1.0, dny))));
             if (Math.abs(angle) > 0.01 && Math.abs(angle - 180) > 0.01) {
                 double ax = dnz, az = -dnx;
@@ -196,4 +197,6 @@ public class NormalVisualizer {
             count[0]++;
         }
     }
+
+    private record MeshEntry(Transform toModelGroup, float[] points, int[] faces) {}
 }

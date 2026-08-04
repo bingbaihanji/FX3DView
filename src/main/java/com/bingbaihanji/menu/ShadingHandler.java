@@ -20,24 +20,26 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 /**
- * 着色模式处理器：管理贴图/纯色/线框/叠加/法线着色5种模式
+ * 着色模式处理器:管理贴图/纯色/线框/叠加/法线着色5种模式
  * <p>
- * 通过 {@link #shadingModeProperty()} 暴露当前着色模式，
- * 其他组件（如StatusBar）可观察此属性以响应着色变化。
+ * 通过 {@link #shadingModeProperty()} 暴露当前着色模式,
+ * 其他组件(如StatusBar)可观察此属性以响应着色变化.
  * </p>
  */
 public class ShadingHandler {
 
     /**
-     * 原始材质备份（用于贴图模式恢复）
+     * 原始材质备份(用于贴图模式恢复)
      */
     private final Map<MeshView, Material> originalMaterials = new HashMap<>();
+
     /**
      * 线框叠加模式创建的覆盖MeshView列表
      */
     private final List<MeshView> overlayMeshViews = new ArrayList<>();
+
     /**
-     * 当前着色模式（可观察属性）
+     * 当前着色模式(可观察属性)
      */
     private final ObjectProperty<ShadingMode> shadingMode = new SimpleObjectProperty<>(ShadingMode.TEXTURED);
 
@@ -59,7 +61,7 @@ public class ShadingHandler {
     }
 
     /**
-     * 获取当前着色模式（只读属性，供外部观察）
+     * 获取当前着色模式(只读属性,供外部观察)
      */
     public ReadOnlyObjectProperty<ShadingMode> shadingModeProperty() {
         return shadingMode;
@@ -70,7 +72,7 @@ public class ShadingHandler {
     }
 
     /**
-     * 清理着色模式产生的临时状态，恢复模型到普通贴图显示。
+     * 清理着色模式产生的临时状态,恢复模型到普通贴图显示.
      */
     public void reset(Group modelGroup) {
         removeOverlays(modelGroup);
@@ -186,7 +188,7 @@ public class ShadingHandler {
             mesh.setCullFace(CullFace.NONE);
 
             if (mesh.getMesh() instanceof TriangleMesh triMesh) {
-                // 从面数据计算面法线（getNormals() 在 OBJ 导入流程中可能为空）
+                // 从面数据计算面法线(getNormals() 在 OBJ 导入流程中可能为空)
                 int[] faces = triMesh.getFaces().toArray(null);
                 float[] points = triMesh.getPoints().toArray(null);
                 double ax = 0, ay = 0, az = 0;
@@ -212,12 +214,12 @@ public class ShadingHandler {
                     double e2y = points[vi2 + 1] - points[vi0 + 1];
                     double e2z = points[vi2 + 2] - points[vi0 + 2];
 
-                    // 叉积得面法线，不归一化（面积加权平均，大面对整体方向贡献更大）
+                    // 叉积得面法线,不归一化(面积加权平均,大面对整体方向贡献更大)
                     double nx = e1y * e2z - e1z * e2y;
                     double ny = e1z * e2x - e1x * e2z;
                     double nz = e1x * e2y - e1y * e2x;
 
-                    // 取绝对值，避免对称模型法线抵消
+                    // 取绝对值,避免对称模型法线抵消
                     ax += Math.abs(nx);
                     ay += Math.abs(ny);
                     az += Math.abs(nz);

@@ -17,9 +17,9 @@ import javafx.scene.paint.Color;
 /**
  * 主布局管理器
  * <p>
- * 负责组装应用程序的UI布局：
- * - 顶部：菜单栏
- * - 中心：3D子场景 + 辅助轴画布
+ * 负责组装应用程序的UI布局:
+ * - 顶部:菜单栏
+ * - 中心:3D子场景 + 辅助轴画布
  * </p>
  *
  * @author bingbaihanji
@@ -27,18 +27,31 @@ import javafx.scene.paint.Color;
 public class MainLayout {
 
     private final BorderPane rootPane = new BorderPane();
+
     private final Pane centerPane = new Pane();
+
     private final SubScene subScene;
+
     private final Canvas axesCanvas;
+
     private final MenuBar menuBar;
+
     private final StatusBar statusBar;
+
     private final ModelInfoPanel modelInfoPanel;
+
     private final Scene3DManager sceneManager;
+
     private final CameraSystem cameraSystem;
+
     private final MouseInteraction mouseInteraction;
+
     private final PickingController pickingController;
+
     private final ViewingAxes viewingAxes;
+
     private MultiViewportLayout multiViewportLayout;
+
     private boolean isMultiViewport = false;
 
     /**
@@ -47,7 +60,7 @@ public class MainLayout {
      * @param sceneManager 场景管理器
      * @param cameraSystem 相机系统
      * @param viewingAxes  辅助轴视图
-     * @param menuBar      菜单栏（已配置好的）
+     * @param menuBar      菜单栏(已配置好的)
      * @param statusBar    状态栏
      */
     public MainLayout(Scene3DManager sceneManager,
@@ -79,7 +92,7 @@ public class MainLayout {
         axesCanvas.setLayoutX(15);
         axesCanvas.setLayoutY(15);
 
-        // 用监听器替代 bind，避免初始化时 centerPane 尺寸为 0 导致 SubScene 零尺寸
+        // 用监听器替代 bind,避免初始化时 centerPane 尺寸为 0 导致 SubScene 零尺寸
         centerPane.widthProperty().addListener((obs, old, w) -> {
             double width = w.doubleValue();
             if (width > 0) {
@@ -95,7 +108,7 @@ public class MainLayout {
             }
         });
 
-        // 菜单栏（直接使用传入的已配置好的MenuBar）
+        // 菜单栏(直接使用传入的已配置好的MenuBar)
         this.menuBar = menuBar;
 
         this.sceneManager = sceneManager;
@@ -172,11 +185,11 @@ public class MainLayout {
         isMultiViewport = !isMultiViewport;
 
         if (isMultiViewport) {
-            // 正交投影模式下先强制切回透视投影，再进入多视口
+            // 正交投影模式下先强制切回透视投影,再进入多视口
             cameraSystem.setPerspective(subScene);
-            // 1. 将相机变换层级从主场景图移到视口 0（Camera 节点不能同时属于两个场景图）
+            // 1. 将相机变换层级从主场景图移到视口 0(Camera 节点不能同时属于两个场景图)
             sceneManager.getRoot().getChildren().remove(cameraSystem.getCameraRootTransform());
-            // 2. 释放主 SubScene 的相机引用（JavaFX Camera 只能属于一个 SubScene）
+            // 2. 释放主 SubScene 的相机引用(JavaFX Camera 只能属于一个 SubScene)
             subScene.setCamera(null);
 
             if (multiViewportLayout == null) {
@@ -190,14 +203,14 @@ public class MainLayout {
                 multiViewportLayout.populateFromModel();
                 multiViewportLayout.bindToPane(centerPane);
             } else {
-                // 已有布局：将相机层级移回视口 0 并重新挂载相机引用
+                // 已有布局:将相机层级移回视口 0 并重新挂载相机引用
                 multiViewportLayout.reattachCameraToViewport0();
                 multiViewportLayout.populateFromModel();
             }
             centerPane.getChildren().clear();
             centerPane.getChildren().add(multiViewportLayout);
         } else {
-            // 切回单视图：释放视口 0 的相机引用
+            // 切回单视图:释放视口 0 的相机引用
             if (multiViewportLayout != null && multiViewportLayout.getMainSubScene() != null) {
                 multiViewportLayout.getMainSubScene().setCamera(null);
             }
@@ -224,7 +237,7 @@ public class MainLayout {
     }
 
     /**
-     * 获取多视口布局（可能为 null）
+     * 获取多视口布局(可能为 null)
      */
     public MultiViewportLayout getMultiViewportLayout() {
         return multiViewportLayout;

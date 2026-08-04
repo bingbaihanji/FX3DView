@@ -9,9 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * 基于四元数的旋转策略实现
  * <p>
- * 使用四元数表示和计算旋转，具有以下优势：
+ * 使用四元数表示和计算旋转,具有以下优势:
  * - 避免万向节锁问题
- * - 平滑的旋转插值（NLERP）
+ * - 平滑的旋转插值(NLERP)
  * - 更好的数值稳定性
  * - 高效的旋转累积
  * - 统一使用 double 精度计算
@@ -28,15 +28,17 @@ public class QuaternionRotation implements RotationStrategy {
     private final Affine rotationAffine = new Affine();
 
     /**
-     * ArcBall工具实例（实例模式，线程安全）
+     * ArcBall工具实例(实例模式,线程安全)
      */
     private final QuaternionArcBallUtils arcBallUtils = new QuaternionArcBallUtils(1, 1);
 
     /**
-     * 临时四元数（复用减少GC，非final以支持引用交换）
+     * 临时四元数(复用减少GC,非final以支持引用交换)
      */
     private Quaternion tempQuat1 = new Quaternion();
+
     private Quaternion tempQuat2 = new Quaternion();
+
     private Quaternion tempQuat3 = new Quaternion();
 
     /**
@@ -53,16 +55,16 @@ public class QuaternionRotation implements RotationStrategy {
         double adjX = prevX + (currX - prevX) * factor;
         double adjY = prevY - (currY - prevY) * factor; // Y轴翻转
 
-        // 使用原地重载计算增量旋转（避免分配新Quaternion）
+        // 使用原地重载计算增量旋转(避免分配新Quaternion)
         arcBallUtils.getArcBallRotationQuaternion(
                 width, height, prevX, prevY, adjX, adjY, tempQuat3);
 
-        // 应用阻尼效果（使用NLERP进行平滑）
+        // 应用阻尼效果(使用NLERP进行平滑)
         double damping = InteractionConfig.ROTATION_DAMPING;
         tempQuat1.set(0, 0, 0, 1); // 单位四元数
         Quaternion.interpolate(tempQuat2, tempQuat1, tempQuat3, damping);
 
-        // 累积旋转：新旋转 = 上次旋转 × 阻尼后的增量旋转
+        // 累积旋转:新旋转 = 上次旋转 × 阻尼后的增量旋转
         Quaternion newRot = Quaternion.multiply(lastRotationQuaternion, tempQuat2);
         newRot.normalize();
         lastRotationQuaternion = newRot;
@@ -73,13 +75,13 @@ public class QuaternionRotation implements RotationStrategy {
 
     @Override
     public void applyAutoRotation(double angleRad) {
-        // 绕Y轴旋转（屏幕竖直方向）
+        // 绕Y轴旋转(屏幕竖直方向)
         Quaternion rotation = Quaternion.fromAxisAngle(0, 1, 0, angleRad);
 
-        // 原地累积旋转（避免multiply分配新Quaternion）
+        // 原地累积旋转(避免multiply分配新Quaternion)
         Quaternion.multiply(lastRotationQuaternion, rotation, tempQuat1);
         tempQuat1.normalize();
-        // 交换引用：tempQuat1成为新累积旋转，旧lastRotationQuaternion变成可复用temp
+        // 交换引用:tempQuat1成为新累积旋转,旧lastRotationQuaternion变成可复用temp
         Quaternion swap = lastRotationQuaternion;
         lastRotationQuaternion = tempQuat1;
         tempQuat1 = swap;
@@ -119,7 +121,7 @@ public class QuaternionRotation implements RotationStrategy {
 
     @Override
     public void reset(double initXAngle, double initYAngle) {
-        // 重置旋转（使用四元数）
+        // 重置旋转(使用四元数)
         double initXRad = Math.toRadians(initXAngle);
         double initYRad = Math.toRadians(initYAngle);
         Quaternion qx = Quaternion.fromEuler(initXRad, 0, 0);
@@ -141,7 +143,7 @@ public class QuaternionRotation implements RotationStrategy {
     }
 
     /**
-     * 更新当前旋转状态（用于鼠标按下时保存状态）
+     * 更新当前旋转状态(用于鼠标按下时保存状态)
      * <p>
      * 从Affine变换中提取当前旋转四元数
      * </p>

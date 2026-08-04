@@ -3,7 +3,7 @@ package com.bingbaihanji.camera;
 /**
  * 相机系统配置常量
  * <p>
- * 集中管理相机相关的配置参数，便于调整和维护
+ * 集中管理相机相关的配置参数,便于调整和维护
  * </p>
  *
  * @author bingbaihanji
@@ -23,17 +23,17 @@ public final class CameraConfig {
     public static final double FAR_CLIP = 500.0;
 
     /**
-     * 相机初始距离（Z轴位置）
+     * 相机初始距离(Z轴位置)
      */
     public static final double INITIAL_DISTANCE = -80.0;
 
     /**
-     * 相机初始X轴旋转角度（度）
+     * 相机初始X轴旋转角度(度)
      */
     public static final double INITIAL_X_ANGLE = 0.0;
 
     /**
-     * 相机初始Y轴旋转角度（度）
+     * 相机初始Y轴旋转角度(度)
      */
     public static final double INITIAL_Y_ANGLE = 0.0;
 
@@ -41,7 +41,7 @@ public final class CameraConfig {
     public static final double MODEL_NEAR_CLIP = -8.0;
 
     /**
-     * 私有构造函数，防止实例化
+     * 私有构造函数,防止实例化
      */
     private CameraConfig() {
         throw new AssertionError("工具类不应该被实例化");

@@ -4,13 +4,19 @@ import javafx.animation.Timeline;
 import javafx.scene.Node;
 import javafx.scene.paint.Material;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 /**
- * 加载器无关的3D模型数据表示类（纯数据类，不管理场景图Group）
+ * 加载器无关的3D模型数据表示类(纯数据类,不管理场景图Group)
  * <p>
- * 职责：存储模型名称→MeshView/材质的映射关系及统计信息。
- * 场景图的组装（将 MeshView 添加到 Group）由调用方（如 DragDropHandler）负责。
+ * 职责:存储模型名称→MeshView/材质的映射关系及统计信息.
+ * 场景图的组装(将 MeshView 添加到 Group)由调用方(如 DragDropHandler)负责.
  * </p>
  *
  * @author bingbaihanji
@@ -18,12 +24,12 @@ import java.util.*;
 public class Model3D {
 
     /**
-     * 材质映射表：材质名称 → 材质对象
+     * 材质映射表:材质名称 → 材质对象
      */
     private final Map<String, Material> materials = new HashMap<>();
 
     /**
-     * 网格视图映射表：网格名称 → 网格视图节点
+     * 网格视图映射表:网格名称 → 网格视图节点
      */
     private final Map<String, Node> meshViews = new HashMap<>();
 
@@ -33,7 +39,7 @@ public class Model3D {
      * @return 网格名称的不重复集合
      */
     public final Set<String> getMeshNames() {
-        // 返回不可修改的视图，防止外部修改内部集合
+        // 返回不可修改的视图,防止外部修改内部集合
         return Collections.unmodifiableSet(meshViews.keySet());
     }
 
@@ -59,7 +65,7 @@ public class Model3D {
      * 可通过 getMeshNames() 方法获取所有可用的网格名称
      *
      * @param key 网格名称
-     * @return 对应的网格视图，如果不存在则返回null
+     * @return 对应的网格视图,如果不存在则返回null
      */
     public final Node getMeshView(String key) {
         return meshViews.get(key);
@@ -68,7 +74,7 @@ public class Model3D {
     /**
      * 获取模型中包含的所有网格视图
      *
-     * @return 所有网格视图的列表（不可修改的副本）
+     * @return 所有网格视图的列表(不可修改的副本)
      */
     public final List<Node> getMeshViews() {
         return new ArrayList<>(meshViews.values());
@@ -106,7 +112,7 @@ public class Model3D {
      * 根据名称获取特定的材质
      *
      * @param key 材质名称
-     * @return 对应的材质对象，如果不存在则返回null
+     * @return 对应的材质对象,如果不存在则返回null
      */
     public final Material getMaterial(String key) {
         return materials.get(key);
@@ -115,7 +121,7 @@ public class Model3D {
     /**
      * 获取模型中包含的所有材质
      *
-     * @return 所有材质的列表（不可修改的副本）
+     * @return 所有材质的列表(不可修改的副本)
      */
     public final List<Material> getMaterials() {
         return new ArrayList<>(materials.values());
@@ -123,7 +129,7 @@ public class Model3D {
 
     /**
      * 获取与此模型关联的动画时间线
-     * 默认实现返回空的Optional，子类可以重写此方法以提供动画支持
+     * 默认实现返回空的Optional,子类可以重写此方法以提供动画支持
      *
      * @return 动画时间线的Optional对象
      */
@@ -135,7 +141,7 @@ public class Model3D {
      * 从模型中移除指定的网格视图
      *
      * @param key 要移除的网格名称
-     * @return 被移除的网格视图，如果不存在则返回null
+     * @return 被移除的网格视图,如果不存在则返回null
      */
     public final Node removeMeshView(String key) {
         return meshViews.remove(key);
@@ -145,7 +151,7 @@ public class Model3D {
      * 从模型中移除指定的材质
      *
      * @param key 要移除的材质名称
-     * @return 被移除的材质对象，如果不存在则返回null
+     * @return 被移除的材质对象,如果不存在则返回null
      */
     public final Material removeMaterial(String key) {
         return materials.remove(key);

@@ -4,27 +4,33 @@ package com.bingbaihanji.matrix;
  * ArcBall算法
  */
 public class ArcBall {
+
     /**
-     * 定义极小值，防止浮点数精度问题导致的除零异常
+     * 定义极小值,防止浮点数精度问题导致的除零异常
      */
     protected static final double EPS = 1e-8;
+
     /**
      * 窗口宽度
      */
     public final int width;
+
     /**
      * 窗口高度
      */
     public final int height;
+
     /**
-     * 复用临时对象减少GC（子类 QuaternionArcBall 可复用）
+     * 复用临时对象减少GC(子类 QuaternionArcBall 可复用)
      */
     protected final Vector3 tempVec1 = new Vector3(0, 0, 0);
+
     protected final Vector3 tempVec2 = new Vector3(0, 0, 0);
+
     protected final Vector3 tempAxis = new Vector3(0, 0, 0);
 
     /**
-     * 构造函数，初始化窗口尺寸。
+     * 构造函数,初始化窗口尺寸.
      */
     public ArcBall(int width, int height) {
         if (width <= 0 || height <= 0) {
@@ -51,11 +57,11 @@ public class ArcBall {
 
         // 根据平方长度判断是否在单位圆内
         if (lengthSquared > 1.0 - EPS) {
-            // 超出单位圆时，将向量投影到单位球面上
+            // 超出单位圆时,将向量投影到单位球面上
             double length = Math.sqrt(lengthSquared);
             return new Vector3(xNorm / length, yNorm / length, EPS);
         } else {
-            // 在单位圆内时，计算z坐标使向量位于单位球面上
+            // 在单位圆内时,计算z坐标使向量位于单位球面上
             double z = Math.sqrt(Math.max(EPS, 1.0 - lengthSquared));
             return new Vector3(xNorm, yNorm, z);
         }
@@ -74,17 +80,17 @@ public class ArcBall {
         double xNorm = (2.0 * x - width) / width;
         double yNorm = -((2.0 * y - height) / height);
 
-        // 计算归一化坐标的平方长度并计算Z坐标（确保在单位球面上）
+        // 计算归一化坐标的平方长度并计算Z坐标(确保在单位球面上)
         double lengthSquared = xNorm * xNorm + yNorm * yNorm;
 
-        // 如果点在单位圆外，则进行球面投影
+        // 如果点在单位圆外,则进行球面投影
         if (lengthSquared > 1.0 - EPS) {
             double length = Math.sqrt(lengthSquared);
             result.x = xNorm / length;
             result.y = yNorm / length;
             result.z = EPS;
         } else {
-            // 如果点在单位圆内，则计算对应的z坐标
+            // 如果点在单位圆内,则计算对应的z坐标
             result.x = xNorm;
             result.y = yNorm;
             result.z = Math.sqrt(Math.max(EPS, 1.0 - lengthSquared));
@@ -93,7 +99,7 @@ public class ArcBall {
 
 
     /**
-     * 计算旋转轴（利用Vector3叉积+归一化）
+     * 计算旋转轴(利用Vector3叉积+归一化)
      *
      * @param v1 第一个向量
      * @param v2 第二个向量
@@ -109,7 +115,7 @@ public class ArcBall {
     }
 
     /**
-     * 计算旋转轴（复用向量对象）
+     * 计算旋转轴(复用向量对象)
      */
     public void computeRotationAxis(Vector3 v1, Vector3 v2, Vector3 result) {
         v1.cross(v2, result);
@@ -128,12 +134,12 @@ public class ArcBall {
      *
      * @param v1 第一个向量
      * @param v2 第二个向量
-     * @return 两个向量之间的夹角（弧度）
+     * @return 两个向量之间的夹角(弧度)
      */
     public double computeRotationAngle(Vector3 v1, Vector3 v2) {
         // 计算两个向量的点积
         double dotProduct = v1.dot(v2);
-        // 将点积限制在[-1, 1]范围内，避免由于浮点数精度问题导致Math.acos函数异常
+        // 将点积限制在[-1, 1]范围内,避免由于浮点数精度问题导致Math.acos函数异常
         dotProduct = Math.max(-1.0, Math.min(1.0, dotProduct));
         // 使用反余弦函数计算夹角
         return Math.acos(dotProduct);
@@ -141,14 +147,14 @@ public class ArcBall {
 
 
     /**
-     * 生成旋转矩阵（返回自定义Matrix3）
+     * 生成旋转矩阵(返回自定义Matrix3)
      */
     public Matrix3 generateRotationMatrix(Vector3 axis, double angle) {
         return Matrix3.rotation(axis, angle);
     }
 
     /**
-     * 生成旋转矩阵（直接填充到现有矩阵）
+     * 生成旋转矩阵(直接填充到现有矩阵)
      */
     public void generateRotationMatrix(Vector3 axis, double angle, Matrix3 result) {
         Matrix3.rotation(axis, angle, result);
@@ -158,7 +164,7 @@ public class ArcBall {
      * 从旋转矩阵中提取欧拉角
      *
      * @param rotationMatrix 3x3旋转矩阵
-     * @return 包含三个欧拉角的数组，顺序为[xAngle, yAngle, zAngle]，单位为度
+     * @return 包含三个欧拉角的数组,顺序为[xAngle, yAngle, zAngle],单位为度
      */
     public double[] extractEulerAngles(Matrix3 rotationMatrix) {
         double xAngle, yAngle, zAngle;

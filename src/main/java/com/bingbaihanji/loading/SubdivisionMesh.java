@@ -8,19 +8,25 @@ import java.util.List;
  * Catmull Clark subdivision surface polygon mesh
  */
 public class SubdivisionMesh extends PolygonMesh {
+
     // 原始网格数据
     private final PolygonMesh originalMesh;
-    // 符号网格列表，存储不同细分级别的网格
+
+    // 符号网格列表,存储不同细分级别的网格
     private final List<SymbolicPolygonMesh> symbolicMeshes;
 
     // 细分参数
     private int subdivisionLevel;
+
     private BoundaryMode boundaryMode;
+
     private MapBorderMode mapBorderMode;
 
-    // 脏标记，用于优化更新
+    // 脏标记,用于优化更新
     private boolean pointValuesDirty;
+
     private boolean meshDirty;
+
     private boolean subdivisionLevelDirty;
 
     /**
@@ -39,7 +45,7 @@ public class SubdivisionMesh extends PolygonMesh {
         setBoundaryModeForced(boundaryMode);
         setMapBorderModeForced(mapBorderMode);
 
-        symbolicMeshes = new ArrayList<>(4); // 通常最多细分3次，预分配容量
+        symbolicMeshes = new ArrayList<>(4); // 通常最多细分3次,预分配容量
 
         // 设置原始网格变化监听器
         originalMesh.getPoints().addListener((observableArray, sizeChanged, from, to) -> {

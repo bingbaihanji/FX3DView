@@ -19,20 +19,24 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.BiConsumer;
 
 /**
  * OBJ 格式3D模型导入器
  * <p>
- * 实现 {@link Importer} 接口，将 Wavefront OBJ 文件解析为 JavaFX {@link TriangleMesh}
- * 或 {@link com.bingbaihanji.loading.PolygonMesh}。支持进度回调和中断取消，
- * 进度回调接口 {@link Importer.ProgressCallback} 定义在父接口中。
+ * 实现 {@link Importer} 接口,将 Wavefront OBJ 文件解析为 JavaFX {@link TriangleMesh}
+ * 或 {@link com.bingbaihanji.loading.PolygonMesh}.支持进度回调和中断取消,
+ * 进度回调接口 {@link Importer.ProgressCallback} 定义在父接口中.
  * </p>
  * <p>
- * 注册到 {@link ImporterRegistry} 时使用 {@code ObjImporter::new} 工厂方法，
- * 每次调用返回新实例以避免多线程共享可变状态。
+ * 注册到 {@link ImporterRegistry} 时使用 {@code ObjImporter::new} 工厂方法,
+ * 每次调用返回新实例以避免多线程共享可变状态.
  * </p>
  *
  * @author bingbaihanji
@@ -41,16 +45,19 @@ import java.util.function.BiConsumer;
 public class ObjImporter implements Importer {
 
     public static final String SUPPORTED_EXT = "obj";
+
     /**
-     * 是否开启调试日志（实例级，线程安全）
+     * 是否开启调试日志(实例级,线程安全)
      */
     private boolean debug = false;
+
     /**
-     * 顶点缩放系数（实例级，线程安全）
+     * 顶点缩放系数(实例级,线程安全)
      */
     private float scale = 1;
+
     /**
-     * 是否将XZ坐标映射为UV（实例级，线程安全）
+     * 是否将XZ坐标映射为UV(实例级,线程安全)
      */
     private boolean flatXZ = false;
 
@@ -83,14 +90,14 @@ public class ObjImporter implements Importer {
     }
 
     /**
-     * 加载 OBJ 文件并报告进度（支持取消）
+     * 加载 OBJ 文件并报告进度(支持取消)
      * <p>
-     * 通过 {@link Importer.ProgressCallback} 回调解析进度（0.0~1.0），
-     * 可通过 {@link Thread#interrupt()} 取消加载。
+     * 通过 {@link Importer.ProgressCallback} 回调解析进度(0.0~1.0),
+     * 可通过 {@link Thread#interrupt()} 取消加载.
      * </p>
      *
      * @param url      模型文件 URL
-     * @param callback 进度回调（可为 null）
+     * @param callback 进度回调(可为 null)
      * @return 加载后的模型数据
      * @throws IOException 如果加载失败或被取消
      */
@@ -100,10 +107,10 @@ public class ObjImporter implements Importer {
     }
 
     /**
-     * 以多边形模式加载 OBJ 文件并报告进度（支持取消）
+     * 以多边形模式加载 OBJ 文件并报告进度(支持取消)
      *
      * @param url      模型文件 URL
-     * @param callback 进度回调（可为 null）
+     * @param callback 进度回调(可为 null)
      * @return 加载后的多边形模型数据
      * @throws IOException 如果加载失败或被取消
      */
@@ -119,14 +126,14 @@ public class ObjImporter implements Importer {
     /**
      * 读取并解析 OBJ 文件
      * <p>
-     * 使用逐行循环替代 Stream，以支持进度回调和中断取消。
-     * 通过 URLConnection.getContentLengthLong() 获取文件大小，
-     * 以已读取的估算字节数 / 总大小作为进度比例。
+     * 使用逐行循环替代 Stream,以支持进度回调和中断取消.
+     * 通过 URLConnection.getContentLengthLong() 获取文件大小,
+     * 以已读取的估算字节数 / 总大小作为进度比例.
      * </p>
      *
      * @param url       模型文件 URL
      * @param asPolygon 是否以多边形模式解析
-     * @param callback  进度回调（可为 null）
+     * @param callback  进度回调(可为 null)
      * @return 解析后的模型
      * @throws IOException 读取失败或被取消
      */
@@ -141,7 +148,8 @@ public class ObjImporter implements Importer {
         long contentLength = conn.getContentLengthLong();
 
         try (InputStream is = conn.getInputStream();
-             BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8), 65536)) {
+             BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8), 65536)
+        ) {
 
             String line;
             long bytesEstimate = 0;
@@ -158,10 +166,10 @@ public class ObjImporter implements Importer {
                     model.parseLine(trimmed);
                 }
 
-                // 估算已读字节数（行内容 + 换行符）
+                // 估算已读字节数(行内容 + 换行符)
                 bytesEstimate += line.length() + 2;
 
-                // 每 100ms 报告一次进度，避免回调过于频繁
+                // 每 100ms 报告一次进度,避免回调过于频繁
                 if (callback != null && contentLength > 0) {
                     long now = System.currentTimeMillis();
                     if (now - lastReportTime > 100) {
@@ -185,7 +193,7 @@ public class ObjImporter implements Importer {
 
         // 最终进度回调
         if (callback != null) {
-            callback.onProgress(1.0, "加载完成，构建网格中...");
+            callback.onProgress(1.0, "加载完成,构建网格中...");
         }
 
         model.loadComplete();
@@ -196,34 +204,35 @@ public class ObjImporter implements Importer {
     private static class ObjModel extends Model3D {
 
         // obj format spec: http://paulbourke.net/dataformats/obj/
+
         /**
-         * 定义了一个静态的解析器映射，用于将 OBJ 文件中不同的关键字映射到对应的解析逻辑。
-         * 该映射的键是 OBJ 文件中行的关键字，值是一个 BiConsumer 对象，
-         * 它接收当前行的内容和模型对象（ObjModel），并调用相应的解析方法处理数据。
+         * 定义了一个静态的解析器映射,用于将 OBJ 文件中不同的关键字映射到对应的解析逻辑.
+         * 该映射的键是 OBJ 文件中行的关键字,值是一个 BiConsumer 对象,
+         * 它接收当前行的内容和模型对象(ObjModel),并调用相应的解析方法处理数据.
          *
-         * <p>主要解析的关键字及其功能说明：
+         * <p>主要解析的关键字及其功能说明:
          * <ul>
-         *   <li>"g" - 组名称，用于定义当前几何体的逻辑组。</li>
-         *   <li>"v " - 顶点坐标，定义几何体的顶点。</li>
-         *   <li>"vt " - 纹理坐标，用于定义顶点在纹理上的映射位置。</li>
-         *   <li>"f " - 面数据，描述几何体的多边形面。</li>
-         *   <li>"s " - 平滑组，用于定义面之间是否共享平滑法线。</li>
-         *   <li>"mtllib " - 材质库，指定一个材质库文件。</li>
-         *   <li>"usemtl " - 使用材质，指定当前几何体使用的材质。</li>
-         *   <li>"vn " - 法线向量，定义顶点或面的法线。</li>
+         *   <li>"g" - 组名称,用于定义当前几何体的逻辑组.</li>
+         *   <li>"v " - 顶点坐标,定义几何体的顶点.</li>
+         *   <li>"vt " - 纹理坐标,用于定义顶点在纹理上的映射位置.</li>
+         *   <li>"f " - 面数据,描述几何体的多边形面.</li>
+         *   <li>"s " - 平滑组,用于定义面之间是否共享平滑法线.</li>
+         *   <li>"mtllib " - 材质库,指定一个材质库文件.</li>
+         *   <li>"usemtl " - 使用材质,指定当前几何体使用的材质.</li>
+         *   <li>"vn " - 法线向量,定义顶点或面的法线.</li>
          * </ul>
          *
-         * <p>每个关键字对应的 BiConsumer 调用方法：
+         * <p>每个关键字对应的 BiConsumer 调用方法:
          * <ul>
-         *   <li>参数 1：当前行的内容（去掉关键字部分的具体数据）。</li>
-         *   <li>参数 2：OBJ 模型对象，用于存储解析结果。</li>
+         *   <li>参数 1:当前行的内容(去掉关键字部分的具体数据).</li>
+         *   <li>参数 2:OBJ 模型对象,用于存储解析结果.</li>
          * </ul>
          * <p>
-         * 示例：
+         * 示例:
          * <pre>
          * PARSERS.get("v ").accept("1.0 2.0 3.0", objModel);
          * </pre>
-         * 上述代码会调用 objModel 的 parseVertex 方法，解析顶点数据。
+         * 上述代码会调用 objModel 的 parseVertex 方法,解析顶点数据.
          */
         private static final Map<String, BiConsumer<String, ObjModel>> PARSERS = Map.of(
                 "g", (l, m) -> m.parseGroupName(l),       // 解析组名称
@@ -235,35 +244,55 @@ public class ObjImporter implements Importer {
                 "usemtl ", (l, m) -> m.parseUseMaterial(l),   // 解析材质使用
                 "vn ", (l, m) -> m.parseVertexNormal(l)       // 解析法线向量
         );
+
         /**
          * 顶点缩放系数
          */
         final float scale;
+
         /**
          * 是否将XZ映射为UV
          */
         final boolean flatXZ;
+
         /**
          * 调试模式
          */
         final boolean debug;
+
         private final URL url;
+
         // specific to single obj model
         private final Map<String, TriangleMesh> meshes = new HashMap<>();
+
         private final ObservableIntegerArray faces = FXCollections.observableIntegerArray();
+
         private final ObservableIntegerArray faceNormals = FXCollections.observableIntegerArray();
+
         List<Map<String, Material>> materialLibrary = new ArrayList<>();
+
         ObservableFloatArray vertices = FXCollections.observableFloatArray();
+
         ObservableFloatArray uvs = FXCollections.observableFloatArray();
+
         ObservableFloatArray normals = FXCollections.observableFloatArray();
+
         ObservableIntegerArray smoothingGroups = FXCollections.observableIntegerArray();
+
         MaterialData materialData = new MaterialData("default", new PhongMaterial(Color.WHITE));
+
         Map<String, String> meshNamesToMaterialNames = new HashMap<>();
+
         int facesStart = 0;
+
         int facesNormalStart = 0;
+
         int smoothingGroupsStart = 0;
+
         int currentSmoothGroup = 0;
+
         String key = "default";
+
         List<String> meshNames = new ArrayList<>();
 
         ObjModel(URL url, float scale, boolean flatXZ, boolean debug) {
@@ -421,28 +450,28 @@ public class ObjImporter implements Importer {
         }
 
         /**
-         * 解析 OBJ 文件中的顶点 (vertex) 数据，并将其转换为程序所需的格式。
-         * 顶点数据通常以 "v x y z" 的形式定义，其中 x、y、z 为顶点的坐标。
+         * 解析 OBJ 文件中的顶点 (vertex) 数据,并将其转换为程序所需的格式.
+         * 顶点数据通常以 "v x y z" 的形式定义,其中 x,y,z 为顶点的坐标.
          * <p>
-         * 此方法会对顶点坐标进行以下处理：
-         * 1. 根据提供的比例 (scale) 缩放顶点坐标。
-         * 2. 反转 Y 轴和 Z 轴的方向以适配当前渲染坐标系。
-         * 3. 如果启用了 flatXZ 模式，将顶点的 X 和 Z 轴值存储为纹理坐标。
+         * 此方法会对顶点坐标进行以下处理:
+         * 1. 根据提供的比例 (scale) 缩放顶点坐标.
+         * 2. 反转 Y 轴和 Z 轴的方向以适配当前渲染坐标系.
+         * 3. 如果启用了 flatXZ 模式,将顶点的 X 和 Z 轴值存储为纹理坐标.
          *
-         * @param value 包含顶点数据的字符串，例如 "v 1.0 2.0 3.0"。
+         * @param value 包含顶点数据的字符串,例如 "v 1.0 2.0 3.0".
          */
         private void parseVertex(String value) {
             // 按空格拆分顶点数据
             String[] split = value.split(" +");
             // 解析并缩放顶点坐标
             float x = Float.parseFloat(split[0]) * scale; // 顶点的 X 坐标
-            float y = -Float.parseFloat(split[1]) * scale; // 顶点的 Y 坐标，反转方向
-            float z = -Float.parseFloat(split[2]) * scale; // 顶点的 Z 坐标，反转方向
+            float y = -Float.parseFloat(split[1]) * scale; // 顶点的 Y 坐标,反转方向
+            float z = -Float.parseFloat(split[2]) * scale; // 顶点的 Z 坐标,反转方向
 
             // 将转换后的顶点坐标添加到顶点集合中
             vertices.addAll(x, y, z);
 
-            // 如果启用了 flatXZ 模式，将顶点的 X 和 Z 值存储为纹理坐标
+            // 如果启用了 flatXZ 模式,将顶点的 X 和 Z 值存储为纹理坐标
             if (flatXZ) {
                 uvs.addAll(x, z);
             }
@@ -450,24 +479,24 @@ public class ObjImporter implements Importer {
 
 
         /**
-         * 解析 OBJ 文件中的纹理坐标 (vertex texture) 数据，并将其转换为程序所需的格式。
-         * 纹理坐标通常以 "vt u v" 的形式定义，其中 u、v 为纹理映射的坐标。
+         * 解析 OBJ 文件中的纹理坐标 (vertex texture) 数据,并将其转换为程序所需的格式.
+         * 纹理坐标通常以 "vt u v" 的形式定义,其中 u,v 为纹理映射的坐标.
          * <p>
-         * 此方法会对纹理坐标进行以下处理：
-         * 1. 如果纹理坐标值为 "NaN"，则将其设置为 Float.NaN。
-         * 2. 反转 V 坐标的方向，以适配当前的纹理坐标系。
-         * 3. 将解析后的纹理坐标存储到 uvs 集合中。
+         * 此方法会对纹理坐标进行以下处理:
+         * 1. 如果纹理坐标值为 "NaN",则将其设置为 Float.NaN.
+         * 2. 反转 V 坐标的方向,以适配当前的纹理坐标系.
+         * 3. 将解析后的纹理坐标存储到 uvs 集合中.
          *
-         * @param value 包含纹理坐标数据的字符串，例如 "vt 0.5 0.5"。
+         * @param value 包含纹理坐标数据的字符串,例如 "vt 0.5 0.5".
          */
         private void parseVertexTexture(String value) {
             // 按空格拆分纹理坐标数据
             String[] split = value.split(" +");
 
-            // 解析 U 坐标，若为 "NaN" 则设为 Float.NaN
+            // 解析 U 坐标,若为 "NaN" 则设为 Float.NaN
             float u = "nan".equalsIgnoreCase(split[0].trim()) ? Float.NaN : Float.parseFloat(split[0]);
 
-            // 解析 V 坐标并反转其方向，若为 "NaN" 则设为 Float.NaN
+            // 解析 V 坐标并反转其方向,若为 "NaN" 则设为 Float.NaN
             float v = "nan".equalsIgnoreCase(split[1].trim()) ? Float.NaN : 1 - Float.parseFloat(split[1]);
 
             // 将解析后的纹理坐标添加到 UV 集合中
@@ -476,19 +505,19 @@ public class ObjImporter implements Importer {
 
 
         /**
-         * 解析 OBJ 文件中的面（face）数据，并存储顶点、纹理坐标和法线索引。
-         * 面数据通常以 "f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3 ..." 的形式定义，其中：
-         * - v 表示顶点索引。
-         * - vt 表示纹理坐标索引。
-         * - vn 表示法线索引。
+         * 解析 OBJ 文件中的面(face)数据,并存储顶点,纹理坐标和法线索引.
+         * 面数据通常以 "f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3 ..." 的形式定义,其中:
+         * - v 表示顶点索引.
+         * - vt 表示纹理坐标索引.
+         * - vn 表示法线索引.
          * <p>
-         * 此方法支持以下情况：
-         * 1. 仅有顶点索引，例如 "f v1 v2 v3"。
-         * 2. 顶点索引和纹理坐标索引，例如 "f v1/vt1 v2/vt2 v3/vt3"。
-         * 3. 顶点索引、纹理坐标索引和法线索引，例如 "f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3"。
-         * 4. 不完整的面数据，例如 "f v1//vn1 v2//vn2 v3//vn3"。
+         * 此方法支持以下情况:
+         * 1. 仅有顶点索引,例如 "f v1 v2 v3".
+         * 2. 顶点索引和纹理坐标索引,例如 "f v1/vt1 v2/vt2 v3/vt3".
+         * 3. 顶点索引,纹理坐标索引和法线索引,例如 "f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3".
+         * 4. 不完整的面数据,例如 "f v1//vn1 v2//vn2 v3//vn3".
          *
-         * @param value 包含面数据的字符串，例如 "f 1/1/1 2/2/2 3/3/3"。
+         * @param value 包含面数据的字符串,例如 "f 1/1/1 2/2/2 3/3/3".
          */
         protected void parseFace(String value) {
             // 按空格拆分面数据
@@ -569,26 +598,26 @@ public class ObjImporter implements Importer {
         }
 
         /**
-         * 解析 OBJ 文件中的材质库声明。
+         * 解析 OBJ 文件中的材质库声明.
          *
-         * <p>OBJ 文件中的 "mtllib" 关键字用于指定一个或多个材质库文件。
-         * 此方法解析关键字后面的材质库文件名，并通过 MtlReader 加载这些文件。
-         * 加载的材质会存储到 `materialLibrary` 列表中。
+         * <p>OBJ 文件中的 "mtllib" 关键字用于指定一个或多个材质库文件.
+         * 此方法解析关键字后面的材质库文件名,并通过 MtlReader 加载这些文件.
+         * 加载的材质会存储到 `materialLibrary` 列表中.
          *
-         * @param value 包含材质库文件名的字符串，文件名之间以空格分隔。
-         *              例如："mtllib materials1.mtl materials2.mtl" 中的 "materials1.mtl materials2.mtl"。
+         * @param value 包含材质库文件名的字符串,文件名之间以空格分隔.
+         *              例如:"mtllib materials1.mtl materials2.mtl" 中的 "materials1.mtl materials2.mtl".
          *
-         *              <p>主要流程：
+         *              <p>主要流程:
          *              <ol>
-         *                <li>使用空格分隔 `value` 参数，将所有文件名提取到数组中。</li>
-         *                <li>对每个文件名创建一个 {@code MtlReader} 实例，并提供文件名和资源的 URL。</li>
-         *                <li>通过 {@code MtlReader#getMaterials()} 方法获取材质集合，并将其添加到 `materialLibrary`。</li>
+         *                <li>使用空格分隔 `value` 参数,将所有文件名提取到数组中.</li>
+         *                <li>对每个文件名创建一个 {@code MtlReader} 实例,并提供文件名和资源的 URL.</li>
+         *                <li>通过 {@code MtlReader#getMaterials()} 方法获取材质集合,并将其添加到 `materialLibrary`.</li>
          *              </ol>
          *
-         *              <p>注意：
+         *              <p>注意:
          *              <ul>
-         *                <li>如果材质文件未找到或读取失败，可能会抛出异常，需考虑异常处理。</li>
-         *                <li>确保文件路径和 URL 的有效性，否则可能会导致加载错误。</li>
+         *                <li>如果材质文件未找到或读取失败,可能会抛出异常,需考虑异常处理.</li>
+         *                <li>确保文件路径和 URL 的有效性,否则可能会导致加载错误.</li>
          *              </ul>
          */
         private void parseMaterialLib(String value) {
@@ -603,9 +632,9 @@ public class ObjImporter implements Importer {
         }
 
         /**
-         * 解析 usemtl 语句，设置当前网格的材质。
+         * 解析 usemtl 语句,设置当前网格的材质.
          *
-         * @param value 材质名称。
+         * @param value 材质名称.
          */
         private void parseUseMaterial(String value) {
             // 添加当前网格的 key
@@ -614,20 +643,20 @@ public class ObjImporter implements Importer {
             // 设置新的材质用于下一个网格
             boolean materialFound = false;
 
-            // 遍历材质库，查找指定的材质
+            // 遍历材质库,查找指定的材质
             for (Map<String, Material> mm : materialLibrary) {
                 Material m = mm.get(value);
                 if (m != null) {
-                    // 找到材质，设置材质数据
+                    // 找到材质,设置材质数据
                     materialData = new MaterialData(value, m);
                     materialFound = true;
                     break;
                 }
             }
 
-            // 如果没有找到指定的材质，输出警告信息
+            // 如果没有找到指定的材质,输出警告信息
             if (!materialFound) {
-                log.warn("找不到材质 '{}'，使用默认材质。", value);
+                log.warn("找不到材质 '{}',使用默认材质.", value);
             }
         }
 
@@ -643,9 +672,9 @@ public class ObjImporter implements Importer {
     /**
      * @MethodName: a
      * @Author 冰白寒祭
-     * &#064;Description:PolyObjModel  主要用于解析 .obj 文件并将其转换为 JavaFX 中可显示的多边形网格数据。
-     * 它处理的关键数据包括顶点、纹理坐标、法线、面的连接关系等。通过这些数据，
-     * 类可以构建 PolygonMeshView 来展示 3D 模型。
+     * &#064;Description:PolyObjModel  主要用于解析 .obj 文件并将其转换为 JavaFX 中可显示的多边形网格数据.
+     * 它处理的关键数据包括顶点,纹理坐标,法线,面的连接关系等.通过这些数据,
+     * 类可以构建 PolygonMeshView 来展示 3D 模型.
      * @Date: 2024-11-18 16:20:56
      */
 
@@ -653,7 +682,9 @@ public class ObjImporter implements Importer {
 
         // specific to poly obj model
         private final Map<String, PolygonMesh> polygonMeshes = new HashMap<>();
+
         private final List<int[]> facesPolygon = new ArrayList<>();
+
         private final List<int[]> faceNormalsPolygon = new ArrayList<>();
 
         PolyObjModel(URL url, float scale, boolean flatXZ, boolean debug) {

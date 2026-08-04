@@ -15,11 +15,12 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 /**
- * 背景颜色选择器对话框（Stage复用）
+ * 背景颜色选择器对话框(Stage复用)
  */
 public class BackgroundColorPicker {
 
     private final SubScene subScene;
+
     private Stage colorStage;
 
     public BackgroundColorPicker(SubScene subScene) {

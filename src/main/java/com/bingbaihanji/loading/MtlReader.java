@@ -13,8 +13,12 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.BiConsumer;
 
 import static java.util.Map.entry;
@@ -62,21 +66,24 @@ public class MtlReader {
             entry("map_aat ", (l, m) -> m.parseIgnore("抗锯齿 (map_aat)")));
 
     /**
-     * MTL 文件所在目录，用于解析相对纹理路径。
+     * MTL 文件所在目录,用于解析相对纹理路径.
      */
     private final URI baseUri;
-    // 存储解析后的材质：材质名称 -> 材质对象
+
+    // 存储解析后的材质:材质名称 -> 材质对象
     private final Map<String, Material> materials = new HashMap<>();
-    // 记录当前材质已解析的属性，避免重复解析
+
+    // 记录当前材质已解析的属性,避免重复解析
     private final Set<String> readProperties = new HashSet<>(PARSERS.size() - 1);
+
     // 当前正在解析的材质
     private PhongMaterial currentMaterial;
 
     /**
-     * MtlReader 构造方法，用于从指定的 URL 加载材质文件。
+     * MtlReader 构造方法,用于从指定的 URL 加载材质文件.
      *
-     * @param filename  需要读取的材质文件的名称。
-     * @param parentUrl 材质文件所在的父 URL。
+     * @param filename  需要读取的材质文件的名称.
+     * @param parentUrl 材质文件所在的父 URL.
      */
     public MtlReader(String filename, String parentUrl) {
         baseUri = resolveBaseUri(parentUrl);
@@ -87,7 +94,8 @@ public class MtlReader {
 
         // 尝试打开材质文件并读取其内容
         try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(mtlUri.toURL().openStream(), StandardCharsets.UTF_8))) {
+                new InputStreamReader(mtlUri.toURL().openStream(), StandardCharsets.UTF_8))
+        ) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String trimmed = line.trim();
@@ -96,9 +104,37 @@ public class MtlReader {
                 }
             }
         } catch (IOException e) {
-            // 如果文件读取过程中发生异常，输出警告信息
+            // 如果文件读取过程中发生异常,输出警告信息
             log.warn("无法加载材质文件: {}", mtlUri, e);
         }
+    }
+
+    private static URI resolveBaseUri(String parentUrl) {
+        URI parent = URI.create(parentUrl);
+        String text = parent.toString();
+        int slash = text.lastIndexOf('/');
+        if (slash < 0) {
+            return parent;
+        }
+        return URI.create(text.substring(0, slash + 1));
+    }
+
+    /**
+     * MTL 贴图语句可能带有 -s/-o/-bm 等选项;当前只提取最后的路径部分.
+     */
+    private static String extractTexturePath(String value) {
+        String trimmed = value.trim();
+        if (!trimmed.startsWith("-")) {
+            return trimmed;
+        }
+
+        String[] parts = trimmed.split("\\s+");
+        for (int i = parts.length - 1; i >= 0; i--) {
+            if (!parts[i].startsWith("-")) {
+                return parts[i];
+            }
+        }
+        return trimmed;
     }
 
     /**
@@ -111,7 +147,7 @@ public class MtlReader {
             String identifier = parser.getKey();
             if (line.startsWith(identifier)) {
                 if (!"newmtl ".equals(identifier) && !readProperties.add(identifier)) {
-                    log.info("{} 属性已在当前材质中解析过，忽略重复设置", identifier);
+                    log.info("{} 属性已在当前材质中解析过,忽略重复设置", identifier);
                     return;
                 }
                 parser.getValue().accept(line.substring(identifier.length()), this);
@@ -123,14 +159,14 @@ public class MtlReader {
 
     // 忽略不支持的属性并记录日志
     private void parseIgnore(String nameAndKey) {
-        log.info("{} 属性暂不支持，已忽略", nameAndKey);
+        log.info("{} 属性暂不支持,已忽略", nameAndKey);
     }
 
     // 解析新材质定义
     private void parseNewMaterial(String materialName) {
         // 检查材质名称是否已存在
         if (materials.containsKey(materialName)) {
-            log.info("材质 '{}' 已存在，忽略重复定义", materialName);
+            log.info("材质 '{}' 已存在,忽略重复定义", materialName);
             return;
         }
 
@@ -172,7 +208,7 @@ public class MtlReader {
         currentMaterial.setBumpMap(loadImage(value));
     }
 
-    // 从字符串中解析颜色 MTL格式：三个浮点数表示RGB颜色分量
+    // 从字符串中解析颜色 MTL格式:三个浮点数表示RGB颜色分量
     private Color readColor(String colorLine) {
         try {
             String[] components = colorLine.trim().split("\\s+");
@@ -218,16 +254,6 @@ public class MtlReader {
         }
     }
 
-    private static URI resolveBaseUri(String parentUrl) {
-        URI parent = URI.create(parentUrl);
-        String text = parent.toString();
-        int slash = text.lastIndexOf('/');
-        if (slash < 0) {
-            return parent;
-        }
-        return URI.create(text.substring(0, slash + 1));
-    }
-
     private URI resolveAsset(String rawPath) {
         String normalized = rawPath.trim().replace('\\', '/');
         try {
@@ -236,25 +262,6 @@ public class MtlReader {
             throw new IllegalArgumentException("资源路径无效: " + rawPath, e);
         }
     }
-
-    /**
-     * MTL 贴图语句可能带有 -s/-o/-bm 等选项；当前只提取最后的路径部分。
-     */
-    private static String extractTexturePath(String value) {
-        String trimmed = value.trim();
-        if (!trimmed.startsWith("-")) {
-            return trimmed;
-        }
-
-        String[] parts = trimmed.split("\\s+");
-        for (int i = parts.length - 1; i >= 0; i--) {
-            if (!parts[i].startsWith("-")) {
-                return parts[i];
-            }
-        }
-        return trimmed;
-    }
-
 
     /**
      * 获取解析后的所有材质
@@ -270,7 +277,7 @@ public class MtlReader {
      * 获取指定名称的材质
      *
      * @param name 材质名称
-     * @return 对应的材质对象，如果不存在返回null
+     * @return 对应的材质对象,如果不存在返回null
      */
     public Material getMaterial(String name) {
         return materials.get(name);

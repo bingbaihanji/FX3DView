@@ -8,11 +8,12 @@ import javafx.scene.shape.Box;
 import javafx.scene.transform.Translate;
 
 /**
- * 包围盒渲染器：用12条Box线框渲染模型的AABB包围盒
+ * 包围盒渲染器:用12条Box线框渲染模型的AABB包围盒
  */
 public class BoundingBoxRenderer {
 
     private static final double EDGE_THICKNESS = 0.03;
+
     private static final Color EDGE_COLOR = Color.CYAN;
 
     public static Group buildBoundingBox(Bounds bounds) {
@@ -36,19 +37,19 @@ public class BoundingBoxRenderer {
         double h = maxY - minY;
         double d = maxZ - minZ;
 
-        // 4 X轴方向边（水平，前后各2条）
+        // 4 X轴方向边(水平,前后各2条)
         addEdge(group, mat, w, t, t, (minX + maxX) / 2, minY, minZ);
         addEdge(group, mat, w, t, t, (minX + maxX) / 2, maxY, minZ);
         addEdge(group, mat, w, t, t, (minX + maxX) / 2, minY, maxZ);
         addEdge(group, mat, w, t, t, (minX + maxX) / 2, maxY, maxZ);
 
-        // 4 Y轴方向边（垂直，4个角）
+        // 4 Y轴方向边(垂直,4个角)
         addEdge(group, mat, t, h, t, minX, (minY + maxY) / 2, minZ);
         addEdge(group, mat, t, h, t, maxX, (minY + maxY) / 2, minZ);
         addEdge(group, mat, t, h, t, minX, (minY + maxY) / 2, maxZ);
         addEdge(group, mat, t, h, t, maxX, (minY + maxY) / 2, maxZ);
 
-        // 4 Z轴方向边（深度，左右各2条）
+        // 4 Z轴方向边(深度,左右各2条)
         addEdge(group, mat, t, t, d, minX, minY, (minZ + maxZ) / 2);
         addEdge(group, mat, t, t, d, maxX, minY, (minZ + maxZ) / 2);
         addEdge(group, mat, t, t, d, minX, maxY, (minZ + maxZ) / 2);

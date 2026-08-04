@@ -27,10 +27,10 @@ import java.util.StringJoiner;
 import java.util.function.Consumer;
 
 /**
- * 菜单事件门面（实例级，支持多窗口独立状态）
+ * 菜单事件门面(实例级,支持多窗口独立状态)
  * <p>
- * 将具体操作委托给各专用处理器：
- * - {@link ScreenshotHandler} — 截图、背景色
+ * 将具体操作委托给各专用处理器:
+ * - {@link ScreenshotHandler} — 截图,背景色
  * - {@link PointCloudHandler} — 点云模式
  * - {@link LightingEventHandler} — 环境光
  * - {@link ShadingHandler} — 着色模式
@@ -45,28 +45,33 @@ public class MenuEvent {
      * 着色模式处理器
      */
     private final ShadingHandler shadingHandler = new ShadingHandler();
+
     /**
      * 截图处理器
      */
     private final ScreenshotHandler screenshotHandler = new ScreenshotHandler();
+
     /**
      * 点云处理器
      */
     private final PointCloudHandler pointCloudHandler = new PointCloudHandler();
+
     /**
      * 环境光处理器
      */
     private final LightingEventHandler lightingEventHandler = new LightingEventHandler();
+
     /**
      * 是否为线框模式
      */
     private boolean isDrawModeIsLINE = false;
+
     /**
      * 是否进行背面剔除
      */
     private boolean isCullFace = false;
 
-    // ==================== 菜单事件注册方法（委托给Handler） ====================
+    // ==================== 菜单事件注册方法(委托给Handler) ====================
 
     /**
      * 递归遍历设置DrawMode
@@ -108,10 +113,10 @@ public class MenuEvent {
     }
 
     /**
-     * 导入3D模型（含进度回调，动态构建文件过滤器）
+     * 导入3D模型(含进度回调,动态构建文件过滤器)
      * <p>
-     * FileChooser 的扩展过滤器从 {@link ImporterRegistry} 动态生成，
-     * 新增文件格式只需在注册表中注册即可自动出现在菜单导入对话框中。
+     * FileChooser 的扩展过滤器从 {@link ImporterRegistry} 动态生成,
+     * 新增文件格式只需在注册表中注册即可自动出现在菜单导入对话框中.
      * </p>
      *
      * @param primaryStage  主舞台
@@ -120,7 +125,7 @@ public class MenuEvent {
      * @param moleculeGroup 模型Group
      * @param onModelLoaded 模型加载完成回调
      * @param onTaskCreated 加载任务创建回调
-     * @param registry      导入器注册表，按扩展名获取 Importer
+     * @param registry      导入器注册表,按扩展名获取 Importer
      */
     public void import3DModel(Stage primaryStage, MenuNode menuNode,
                               Group world, Group moleculeGroup,
@@ -138,7 +143,7 @@ public class MenuEvent {
     }
 
     /**
-     * 导入3D模型（使用窗口级加载服务，避免连续导入竞态）。
+     * 导入3D模型(使用窗口级加载服务,避免连续导入竞态).
      */
     public void import3DModel(Stage primaryStage, MenuNode menuNode,
                               ModelLoadService modelLoadService,
@@ -173,7 +178,7 @@ public class MenuEvent {
     }
 
     /**
-     * 环境光菜单（委托给 LightingEventHandler，多视口模式下分发光源到所有视口）
+     * 环境光菜单(委托给 LightingEventHandler,多视口模式下分发光源到所有视口)
      */
     public void menuSetupLighting(MenuNode menuNode, Group world, MainLayout mainLayout) {
         menuNode.getSetupLighting().setOnAction(event -> {
@@ -193,14 +198,14 @@ public class MenuEvent {
     }
 
     /**
-     * 点云菜单（委托给 PointCloudHandler）
+     * 点云菜单(委托给 PointCloudHandler)
      */
     public void menuSetDotPlots(MenuNode menuNode, Group modelGroup) {
         menuSetDotPlots(menuNode, modelGroup, modelGroup);
     }
 
     /**
-     * 点云菜单（只采样模型组，可指定点云挂载父节点）。
+     * 点云菜单(只采样模型组,可指定点云挂载父节点).
      */
     public void menuSetDotPlots(MenuNode menuNode, Group modelGroup, Group renderParent) {
         menuNode.getPlotsMode().setOnAction(event -> pointCloudHandler.toggleDotPlots(modelGroup, renderParent));
@@ -209,7 +214,7 @@ public class MenuEvent {
     /**
      * 根据相机旋转刷新点云 billboard 方向
      * <p>
-     * 仅在点云模式下生效，由相机旋转回调驱动。
+     * 仅在点云模式下生效,由相机旋转回调驱动.
      * </p>
      *
      * @param cameraAffine 当前相机旋转仿射
@@ -258,16 +263,16 @@ public class MenuEvent {
     }
 
     /**
-     * 重置视角菜单（与快捷键 Z 功能一致，支持多视口模式）
+     * 重置视角菜单(与快捷键 Z 功能一致,支持多视口模式)
      */
     public void menuResetView(MenuNode menuNode, CameraSystem cameraSystem,
                               ViewingAxes viewingAxes, MainLayout mainLayout) {
         menuNode.getResetView().setOnAction(event -> {
             if (mainLayout.isMultiViewport() && mainLayout.getMultiViewportLayout() != null) {
-                // 多视口模式：重置所有四个视口
+                // 多视口模式:重置所有四个视口
                 mainLayout.getMultiViewportLayout().resetAllViewports();
             } else {
-                // 单视图模式：与快捷键 Z 一致
+                // 单视图模式:与快捷键 Z 一致
                 cameraSystem.resetCamera();
             }
             viewingAxes.updateAxes(cameraSystem.getRotationStrategy().getRotationAffine());
@@ -301,14 +306,14 @@ public class MenuEvent {
     }
 
     /**
-     * 背景颜色菜单（委托给 ScreenshotHandler）
+     * 背景颜色菜单(委托给 ScreenshotHandler)
      */
     public void setBackgroundColor(MenuNode menuNode, SubScene subScene) {
         screenshotHandler.setBackgroundColor(menuNode, subScene);
     }
 
     /**
-     * 截图菜单（委托给 ScreenshotHandler）
+     * 截图菜单(委托给 ScreenshotHandler)
      */
     public void screenshots(Stage primaryStage, MenuNode menuNode, SubScene subScene) {
         screenshotHandler.screenshots(primaryStage, menuNode, subScene);
@@ -350,13 +355,13 @@ public class MenuEvent {
     /**
      * 清空模型菜单
      * <p>
-     * 清空当前加载的模型、包围盒和法线可视化，
-     * 重置线框/背面剔除等内部状态。
+     * 清空当前加载的模型,包围盒和法线可视化,
+     * 重置线框/背面剔除等内部状态.
      * </p>
      *
      * @param menuNode     菜单节点
      * @param sceneManager 场景管理器
-     * @param onCleared    清空后的UI更新回调（状态栏、信息面板等）
+     * @param onCleared    清空后的UI更新回调(状态栏,信息面板等)
      */
     public void menuClearModel(MenuNode menuNode, Scene3DManager sceneManager, Runnable onCleared) {
         menuNode.getClearModel().setOnAction(event -> {
@@ -375,14 +380,14 @@ public class MenuEvent {
     // ==================== 静态工具方法 ====================
 
     /**
-     * 着色模式菜单（委托给 ShadingHandler）
+     * 着色模式菜单(委托给 ShadingHandler)
      */
     public void setupShadingModes(MenuNode menuNode, Group moleculeGroup) {
         shadingHandler.setupShadingModes(menuNode, moleculeGroup);
     }
 
     /**
-     * 重置依赖当前模型节点的临时可视化状态。
+     * 重置依赖当前模型节点的临时可视化状态.
      */
     public void resetModelVisualization(Group moleculeGroup, Group renderParent) {
         pointCloudHandler.reset();
@@ -390,7 +395,7 @@ public class MenuEvent {
     }
 
     /**
-     * 重置模型可视化状态并同步菜单勾选。
+     * 重置模型可视化状态并同步菜单勾选.
      */
     public void resetModelVisualization(MenuNode menuNode, Group moleculeGroup, Group renderParent) {
         resetModelVisualization(moleculeGroup, renderParent);
@@ -403,7 +408,7 @@ public class MenuEvent {
     /**
      * 切换线框/实体渲染模式
      * <p>
-     * 递归遍历所有子节点，统一切换MeshView的DrawMode
+     * 递归遍历所有子节点,统一切换MeshView的DrawMode
      * </p>
      */
     public void setModelDrawMode(Group modelGroup) {

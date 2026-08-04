@@ -2,6 +2,7 @@ package com.bingbaihanji.loading;
 
 
 public class OriginalPointArray extends SymbolicPointArray {
+
     PolygonMesh mesh;
 
     public OriginalPointArray(PolygonMesh mesh) {

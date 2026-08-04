@@ -6,22 +6,28 @@ import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
 
 /**
- * GroupTransform 封装了 JavaFX 节点变换操作（平移、旋转、缩放及旋转中心点）
+ * GroupTransform 封装了 JavaFX 节点变换操作(平移,旋转,缩放及旋转中心点)
  * <p>
- * 继承自 {@link Group}，在构造时按指定旋转顺序预填充 transforms 列表，
- * 提供链式的 translate / rotate / scale / pivot 设置与重置方法。
+ * 继承自 {@link Group},在构造时按指定旋转顺序预填充 transforms 列表,
+ * 提供链式的 translate / rotate / scale / pivot 设置与重置方法.
  * </p>
  */
 public class GroupTransform extends Group {
 
     // 平移变换
     public Translate translate = new Translate(); // 平移变换
+
     public Translate pivot = new Translate(); // 旋转的中心点
+
     public Translate inversePivot = new Translate(); // 旋转中心点的逆变换
+
     // 旋转变换
     public Rotate rx = new Rotate(); // 绕 X 轴旋转
+
     public Rotate ry = new Rotate(); // 绕 Y 轴旋转
+
     public Rotate rz = new Rotate(); // 绕 Z 轴旋转
+
     // 缩放变换
     public Scale s = new Scale();
 
@@ -32,7 +38,7 @@ public class GroupTransform extends Group {
     }
 
     /**
-     * 默认构造函数，按固定的顺序添加所有变换。
+     * 默认构造函数,按固定的顺序添加所有变换.
      */
     public GroupTransform() {
         super();
@@ -40,7 +46,7 @@ public class GroupTransform extends Group {
     }
 
     /**
-     * 带旋转顺序的构造函数，根据指定的旋转顺序添加变换。
+     * 带旋转顺序的构造函数,根据指定的旋转顺序添加变换.
      *
      * @param rotateOrder 旋转的顺序
      */
@@ -66,7 +72,7 @@ public class GroupTransform extends Group {
     }
 
     /**
-     * 设置平移的 x、y、z 值。
+     * 设置平移的 x,y,z 值.
      *
      * @param x 平移的 x 坐标
      * @param y 平移的 y 坐标
@@ -79,7 +85,7 @@ public class GroupTransform extends Group {
     }
 
     /**
-     * 设置平移的 x 和 y 值。
+     * 设置平移的 x 和 y 值.
      *
      * @param x 平移的 x 坐标
      * @param y 平移的 y 坐标
@@ -90,7 +96,7 @@ public class GroupTransform extends Group {
     }
 
     /**
-     * 设置平移的 x 值。
+     * 设置平移的 x 值.
      *
      * @param x 平移的 x 坐标
      */
@@ -99,7 +105,7 @@ public class GroupTransform extends Group {
     }
 
     /**
-     * 设置平移的 y 值。
+     * 设置平移的 y 值.
      *
      * @param y 平移的 y 坐标
      */
@@ -108,7 +114,7 @@ public class GroupTransform extends Group {
     }
 
     /**
-     * 设置平移的 z 值。
+     * 设置平移的 z 值.
      *
      * @param z 平移的 z 坐标
      */
@@ -117,7 +123,7 @@ public class GroupTransform extends Group {
     }
 
     /**
-     * 设置旋转的 x、y、z 值。
+     * 设置旋转的 x,y,z 值.
      *
      * @param x 绕 X 轴的旋转角度
      * @param y 绕 Y 轴的旋转角度
@@ -150,7 +156,7 @@ public class GroupTransform extends Group {
     }
 
     /**
-     * 设置缩放因子。
+     * 设置缩放因子.
      *
      * @param scaleFactor 缩放因子
      */
@@ -173,7 +179,7 @@ public class GroupTransform extends Group {
     }
 
     /**
-     * 设置旋转的中心点。
+     * 设置旋转的中心点.
      *
      * @param x 中心点的 x 坐标
      * @param y 中心点的 y 坐标
@@ -189,7 +195,7 @@ public class GroupTransform extends Group {
     }
 
     /**
-     * 重置所有变换参数为默认值。
+     * 重置所有变换参数为默认值.
      */
     public void reset() {
         translate.setX(0.0);
@@ -210,7 +216,7 @@ public class GroupTransform extends Group {
     }
 
     /**
-     * 重置平移、缩放和旋转中心点。
+     * 重置平移,缩放和旋转中心点.
      */
     public void resetTSP() {
         translate.setX(0.0);
@@ -228,7 +234,7 @@ public class GroupTransform extends Group {
     }
 
     /**
-     * 打印当前变换参数的调试信息。
+     * 打印当前变换参数的调试信息.
      */
     @Override
     public String toString() {
@@ -255,9 +261,14 @@ public class GroupTransform extends Group {
     }
 
     /**
-     * 枚举类型 RotateOrder 表示旋转的顺序。
+     * 枚举类型 RotateOrder 表示旋转的顺序.
      */
     public enum RotateOrder {
-        XYZ, XZY, YXZ, YZX, ZXY, ZYX
+        XYZ,
+        XZY,
+        YXZ,
+        YZX,
+        ZXY,
+        ZYX
     }
 }

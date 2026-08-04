@@ -5,9 +5,12 @@ package com.bingbaihanji.loading;
  * as a function of other variables.
  */
 public abstract class SymbolicPointArray {
-    // 每个点的组件数量（x, y, z）
+
+    // 每个点的组件数量(x, y, z)
     static final int NUM_COMPONENTS_PER_POINT = 3;
+
     final public float[] data;
+
     final public int numPoints;
 
     protected SymbolicPointArray(float[] data) {

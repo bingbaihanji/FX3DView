@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * 基于旋转矩阵的旋转策略实现
  * <p>
- * 使用3x3旋转矩阵表示和计算旋转，具有以下特点：
+ * 使用3x3旋转矩阵表示和计算旋转,具有以下特点:
  * - 直观的数学表示
  * - 传统的旋转计算方法
  * - 适合教学演示
@@ -22,22 +22,27 @@ import lombok.extern.slf4j.Slf4j;
 public class MatrixRotation implements RotationStrategy {
 
     /**
-     * 预分配Y轴向量，避免每帧new Vector3
+     * 预分配Y轴向量,避免每帧new Vector3
      */
     private static final Vector3 Y_AXIS = new Vector3(0, 1, 0);
+
     /**
      * 旋转变换的Affine对象
      */
     private final Affine rotationAffine = new Affine();
+
     /**
-     * ArcBall工具实例（实例模式，线程安全）
+     * ArcBall工具实例(实例模式,线程安全)
      */
     private final ArcBallUtils arcBallUtils = new ArcBallUtils(1, 1);
+
     /**
-     * 临时矩阵（复用，减少每帧GC）
+     * 临时矩阵(复用,减少每帧GC)
      */
     private final Matrix3 tempM1 = new Matrix3();
+
     private final Matrix3 tempM2 = new Matrix3();
+
     /**
      * 当前累积的旋转矩阵
      */
@@ -52,11 +57,11 @@ public class MatrixRotation implements RotationStrategy {
         double adjX = prevX + (currX - prevX) * factor;
         double adjY = prevY - (currY - prevY) * factor; // Y轴翻转
 
-        // 原地计算增量旋转矩阵（避免分配新Matrix3）
+        // 原地计算增量旋转矩阵(避免分配新Matrix3)
         arcBallUtils.getArcBallRotationMatrix(
                 width, height, prevX, prevY, adjX, adjY, tempM1);
 
-        // 阻尼插值：tempM2 = lerp(identity, tempM1, damping)
+        // 阻尼插值:tempM2 = lerp(identity, tempM1, damping)
         double damping = InteractionConfig.ROTATION_DAMPING;
         Matrix3.lerp(Matrix3.identityMatrix(), tempM1, damping, tempM2);
 
@@ -68,10 +73,10 @@ public class MatrixRotation implements RotationStrategy {
 
     @Override
     public void applyAutoRotation(double angleRad) {
-        // 绕Y轴旋转（原地计算，避免分配新Matrix3）
+        // 绕Y轴旋转(原地计算,避免分配新Matrix3)
         Matrix3.rotation(Y_AXIS, angleRad, tempM1);
 
-        // 累积旋转（原地右乘）
+        // 累积旋转(原地右乘)
         lastRotationMatrix.mulSelf(tempM1);
 
         // 应用到Affine
@@ -109,7 +114,7 @@ public class MatrixRotation implements RotationStrategy {
 
     @Override
     public void reset(double initXAngle, double initYAngle) {
-        // 重置旋转（使用矩阵）
+        // 重置旋转(使用矩阵)
         double initXRad = Math.toRadians(initXAngle);
         double initYRad = Math.toRadians(initYAngle);
         Matrix3 rxInit = Matrix3.rotationX(initXRad); // X轴旋转矩阵
@@ -131,7 +136,7 @@ public class MatrixRotation implements RotationStrategy {
     }
 
     /**
-     * 更新当前旋转状态（用于鼠标按下时保存状态）
+     * 更新当前旋转状态(用于鼠标按下时保存状态)
      * <p>
      * 从Affine变换中提取当前旋转矩阵
      * </p>

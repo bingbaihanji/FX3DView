@@ -3,16 +3,16 @@ package com.bingbaihanji.matrix;
 import javafx.scene.transform.Affine;
 
 /**
- * ArcBall工具类（实例模式，避免静态可变缓存导致的线程安全问题）
+ * ArcBall工具类(实例模式,避免静态可变缓存导致的线程安全问题)
  * <p>
- * 每个 RotationStrategy 实例持有自己的 ArcBallUtils，
- * 消除了静态 arcBall 缓存的竞态条件。
+ * 每个 RotationStrategy 实例持有自己的 ArcBallUtils,
+ * 消除了静态 arcBall 缓存的竞态条件.
  * </p>
  */
 public class ArcBallUtils {
 
     /**
-     * 缓存的ArcBall实例（实例级，非static，线程安全）
+     * 缓存的ArcBall实例(实例级,非static,线程安全)
      */
     private ArcBall arcBall;
 
@@ -24,13 +24,13 @@ public class ArcBallUtils {
         this.arcBall = new ArcBall(width, height);
     }
 
-    // ==================== 静态工具方法（无状态，仅做数据转换） ====================
+    // ==================== 静态工具方法(无状态,仅做数据转换) ====================
 
     /**
      * 从仿射变换矩阵中提取旋转矩阵部分
      *
-     * @param affine 仿射变换矩阵，包含旋转、缩放、平移等变换信息
-     * @return Matrix3 3x3旋转矩阵，仅包含旋转变换部分
+     * @param affine 仿射变换矩阵,包含旋转,缩放,平移等变换信息
+     * @return Matrix3 3x3旋转矩阵,仅包含旋转变换部分
      */
     public static Matrix3 getRotationFromAffine(Affine affine) {
         return new Matrix3(
@@ -43,8 +43,8 @@ public class ArcBallUtils {
     /**
      * 将3x3旋转矩阵的值设置到仿射变换对象中
      *
-     * @param affine         仿射变换对象，用于接收旋转矩阵的值
-     * @param rotationMatrix 3x3旋转矩阵，包含旋转变换的数据
+     * @param affine         仿射变换对象,用于接收旋转矩阵的值
+     * @param rotationMatrix 3x3旋转矩阵,包含旋转变换的数据
      */
     public static void setRotationToAffine(Affine affine, Matrix3 rotationMatrix) {
         affine.setMxx(rotationMatrix.m00);
@@ -58,10 +58,10 @@ public class ArcBallUtils {
         affine.setMzz(rotationMatrix.m22);
     }
 
-    // ==================== 实例方法（持有 ArcBall 状态） ====================
+    // ==================== 实例方法(持有 ArcBall 状态) ====================
 
     /**
-     * 计算弧球旋转矩阵（返回新矩阵）
+     * 计算弧球旋转矩阵(返回新矩阵)
      *
      * @param width  视口宽度
      * @param height 视口高度
@@ -85,7 +85,7 @@ public class ArcBallUtils {
     }
 
     /**
-     * 计算ArcBall旋转矩阵（原地操作，结果填充到result）
+     * 计算ArcBall旋转矩阵(原地操作,结果填充到result)
      *
      * @param width  窗口宽度
      * @param height 窗口高度

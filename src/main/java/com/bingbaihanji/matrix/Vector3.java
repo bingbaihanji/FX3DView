@@ -3,42 +3,48 @@ package com.bingbaihanji.matrix;
 import java.util.Objects;
 
 /**
- * 三维向量类，用于表示和操作三维空间中的向量
+ * 三维向量类,用于表示和操作三维空间中的向量
  *
- * <p>该类提供了向量运算的基本操作，包括：
+ * <p>该类提供了向量运算的基本操作,包括:
  * <ul>
- *   <li>向量加法、减法</li>
- *   <li>向量缩放（数乘）</li>
- *   <li>向量点积（数量积）</li>
- *   <li>向量叉积（向量积）</li>
- *   <li>向量归一化（单位化）</li>
+ *   <li>向量加法,减法</li>
+ *   <li>向量缩放(数乘)</li>
+ *   <li>向量点积(数量积)</li>
+ *   <li>向量叉积(向量积)</li>
+ *   <li>向量归一化(单位化)</li>
  *   <li>向量长度计算</li>
  * </ul>
  *
- * <p>该类支持两种操作模式：
+ * <p>该类支持两种操作模式:
  * <ul>
- *   <li>非原地操作：返回新的向量实例，保持原向量不变</li>
- *   <li>原地操作：修改当前向量实例，提高性能</li>
+ *   <li>非原地操作:返回新的向量实例,保持原向量不变</li>
+ *   <li>原地操作:修改当前向量实例,提高性能</li>
  * </ul>
  *
  * @author bingbaihanji
  * @version 1.0
  */
 public final class Vector3 {
+
     /**
-     * 零向量（所有分量为0）
+     * 零向量(所有分量为0)
      */
     public static final Vector3 ZERO = new Vector3(0.0, 0.0, 0.0);
+
     // X轴单位向量
     public static final Vector3 UNIT_X = new Vector3(1.0, 0.0, 0.0);
+
     // Y轴单位向量
     public static final Vector3 UNIT_Y = new Vector3(0.0, 1.0, 0.0);
+
     // Z轴单位向量
     public static final Vector3 UNIT_Z = new Vector3(0.0, 0.0, 1.0);
+
     /**
-     * 归一化的最小长度阈值，避免除以零或生成NaN值
+     * 归一化的最小长度阈值,避免除以零或生成NaN值
      */
     private static final double MIN_NORMALIZE_LENGTH = 1e-12;
+
     /**
      * 向量 X Y Z 分量
      */
@@ -55,7 +61,7 @@ public final class Vector3 {
     }
 
     /**
-     * 拷贝构造函数，从已有的 Vector3 实例创建副本
+     * 拷贝构造函数,从已有的 Vector3 实例创建副本
      *
      * @param other 要拷贝的向量
      */
@@ -67,7 +73,7 @@ public final class Vector3 {
     }
 
     /**
-     * 工厂方法，创建3D向量实例
+     * 工厂方法,创建3D向量实例
      */
     public static Vector3 of(double x, double y, double z) {
         if (x == 0.0 && y == 0.0 && z == 0.0) {
@@ -77,7 +83,7 @@ public final class Vector3 {
     }
 
     /**
-     * 向量加法：当前向量与另一个向量相加，返回新向量
+     * 向量加法:当前向量与另一个向量相加,返回新向量
      */
     public Vector3 add(Vector3 other) {
         Objects.requireNonNull(other, "待相加的向量other不能为空");
@@ -85,7 +91,7 @@ public final class Vector3 {
     }
 
     /**
-     * 原地加法，不创建新对象
+     * 原地加法,不创建新对象
      */
     public Vector3 addLocal(Vector3 other) {
         Objects.requireNonNull(other, "待相加的向量other不能为空");
@@ -96,7 +102,7 @@ public final class Vector3 {
     }
 
     /**
-     * 向量减法：当前向量与另一个向量相减，返回新向量
+     * 向量减法:当前向量与另一个向量相减,返回新向量
      */
     public Vector3 sub(Vector3 other) {
         Objects.requireNonNull(other, "待相减的向量other不能为空");
@@ -104,7 +110,7 @@ public final class Vector3 {
     }
 
     /**
-     * 原地减法，不创建新对象
+     * 原地减法,不创建新对象
      */
     public Vector3 subLocal(Vector3 other) {
         Objects.requireNonNull(other, "待相减的向量other不能为空");
@@ -115,7 +121,7 @@ public final class Vector3 {
     }
 
     /**
-     * 向量缩放：当前向量的所有分量乘以标量，返回新向量
+     * 向量缩放:当前向量的所有分量乘以标量,返回新向量
      */
     public Vector3 scale(double s) {
         return new Vector3(x * s, y * s, z * s);
@@ -132,7 +138,7 @@ public final class Vector3 {
     }
 
     /**
-     * 向量点积（数量积）：当前向量与另一个向量的点积计算
+     * 向量点积(数量积):当前向量与另一个向量的点积计算
      */
     public double dot(Vector3 other) {
         Objects.requireNonNull(other, "点积计算的向量other不能为空");
@@ -140,7 +146,7 @@ public final class Vector3 {
     }
 
     /**
-     * 向量叉积（向量积）：当前向量与另一个向量的叉积计算
+     * 向量叉积(向量积):当前向量与另一个向量的叉积计算
      */
     public Vector3 cross(Vector3 other) {
         Objects.requireNonNull(other, "叉积计算的向量other不能为空");
@@ -177,21 +183,21 @@ public final class Vector3 {
     }
 
     /**
-     * 计算向量的长度平方（模的平方）
+     * 计算向量的长度平方(模的平方)
      */
     public double lengthSquared() {
         return x * x + y * y + z * z;
     }
 
     /**
-     * 计算向量的长度（模）
+     * 计算向量的长度(模)
      */
     public double length() {
         return Math.sqrt(lengthSquared());
     }
 
     /**
-     * 向量归一化（单位化）：将向量转换为长度为1的单位向量
+     * 向量归一化(单位化):将向量转换为长度为1的单位向量
      */
     public Vector3 normalize() {
         double len = length();

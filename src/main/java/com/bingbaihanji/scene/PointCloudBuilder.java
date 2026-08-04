@@ -10,29 +10,29 @@ import javafx.scene.shape.VertexFormat;
 import javafx.scene.transform.Affine;
 
 /**
- * 批量点云构建器：将大量采样点合成为一个TriangleMesh，用单个MeshView渲染
+ * 批量点云构建器:将大量采样点合成为一个TriangleMesh,用单个MeshView渲染
  * <p>
- * 替代之前为每个采样点创建独立Sphere节点的做法，
- * 将渲染调用从N次降至1次，避免大模型点云模式下的严重卡顿。
- * 每个采样点渲染为一个始终面朝相机的正方形（billboard），
- * 从任意视角均可看到点云。
+ * 替代之前为每个采样点创建独立Sphere节点的做法,
+ * 将渲染调用从N次降至1次,避免大模型点云模式下的严重卡顿.
+ * 每个采样点渲染为一个始终面朝相机的正方形(billboard),
+ * 从任意视角均可看到点云.
  * </p>
  */
 public final class PointCloudBuilder {
 
     /**
-     * 每个采样点的正方形半边长（世界单位）
+     * 每个采样点的正方形半边长(世界单位)
      */
     private static final float STAR_RADIUS = 0.003f;
 
     private PointCloudBuilder() { /* 工具类 */ }
 
     /**
-     * 构建整个点云Group（包含单个MeshView），正方形始终面朝相机
+     * 构建整个点云Group(包含单个MeshView),正方形始终面朝相机
      *
-     * @param samplePoints 采样点坐标数组 {x,y,z, x,y,z, ...}，使用世界坐标
+     * @param samplePoints 采样点坐标数组 {x,y,z, x,y,z, ...},使用世界坐标
      * @param color        点云颜色
-     * @param cameraAffine 相机的旋转仿射矩阵（用于提取right/up向量），null 时回退到十字星
+     * @param cameraAffine 相机的旋转仿射矩阵(用于提取right/up向量),null 时回退到十字星
      * @return 包含单个MeshView的点云Group
      */
     public static Group build(float[] samplePoints, Color color, Affine cameraAffine) {
@@ -51,7 +51,7 @@ public final class PointCloudBuilder {
             uy = (float) cameraAffine.getMyy();
             uz = (float) cameraAffine.getMzy();
         } else {
-            // 回退：默认朝向 +Z（十字星模式）
+            // 回退:默认朝向 +Z(十字星模式)
             Group g = buildCrossStar(samplePoints, color);
             return g;
         }
@@ -111,8 +111,8 @@ public final class PointCloudBuilder {
     }
 
     /**
-     * 十字星模式（回退方案，不依赖相机方向）
-     * <p>每个点为3个正交平面上的小正方形，确保从任意角度可见</p>
+     * 十字星模式(回退方案,不依赖相机方向)
+     * <p>每个点为3个正交平面上的小正方形,确保从任意角度可见</p>
      */
     private static Group buildCrossStar(float[] samplePoints, Color color) {
         int pointCount = samplePoints.length / 3;
@@ -140,7 +140,7 @@ public final class PointCloudBuilder {
     }
 
     /**
-     * 创建MeshView并包裹到Group中，关闭背面剔除确保双面可见
+     * 创建MeshView并包裹到Group中,关闭背面剔除确保双面可见
      */
     private static Group buildMeshView(float[] vertices, int[] faces, Color color) {
         TriangleMesh mesh = new TriangleMesh(VertexFormat.POINT_TEXCOORD);
@@ -163,7 +163,7 @@ public final class PointCloudBuilder {
         return root;
     }
 
-    // ========== 十字星顶点/面的构建方法（回退模式使用） ==========
+    // ========== 十字星顶点/面的构建方法(回退模式使用) ==========
 
     private static int addXYQuad(float[] v, int i, float px, float py, float pz) {
         float r = STAR_RADIUS;

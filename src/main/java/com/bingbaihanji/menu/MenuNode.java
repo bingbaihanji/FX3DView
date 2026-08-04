@@ -1,7 +1,14 @@
 package com.bingbaihanji.menu;
 
 import javafx.scene.Node;
-import javafx.scene.control.*;
+import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.RadioMenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.paint.Color;
@@ -33,83 +40,114 @@ public class MenuNode {
             new Stop(0.5, new Color(0.04, 0.21, 0.26, 1.0)),
             new Stop(1.0, new Color(0.05, 0.26, 0.14, 1.0))
     );
+
     @Getter
     private final MenuItem importObj = new MenuItem("导入3D模型文件");
+
     @Getter
     private final MenuItem screenshots = new MenuItem("截图");
+
     @Getter
     private final MenuItem setBackgroundColor = new MenuItem("设置背景颜色");
+
     @Getter
     private final MenuItem setupLighting = new MenuItem("模型光源");
+
     @Getter
     private final MenuItem wireframes = new MenuItem("线框模式");
+
     @Getter
     private final MenuItem plotsMode = new MenuItem("点模式");
+
     @Getter
     private final CheckMenuItem boundingBoxToggle = new CheckMenuItem("包围盒");
+
     @Getter
     private final CheckMenuItem normalToggle = new CheckMenuItem("法线可视化");
+
     @Getter
     private final CheckMenuItem backFaceCullingToggle = new CheckMenuItem("背面剔除");
+
     @Getter
     private final CheckMenuItem modelInfoToggle = new CheckMenuItem("模型信息");
+
     @Getter
     private final CheckMenuItem orthoToggle = new CheckMenuItem("正交投影");
+
     @Getter
     private final MenuItem resetView = new MenuItem("重置视角");
+
     @Getter
     private final CheckMenuItem multiViewToggle = new CheckMenuItem("多视口");
+
     @Getter
     private final CheckMenuItem directionalLightToggle = new CheckMenuItem("方向光");
+
     @Getter
     private final MenuItem clearModel = new MenuItem("清空");
+
     @Getter
     private final MenuItem directionalLight = new MenuItem("方向光设置...");
 
     // 设置菜单 — 旋转引擎选择
     private final ToggleGroup engineGroup = new ToggleGroup();
+
     @Getter
     private final RadioMenuItem engineQuaternion = new RadioMenuItem("四元数旋转");
+
     @Getter
     private final RadioMenuItem engineMatrix = new RadioMenuItem("矩阵旋转");
 
     // 预设视角子菜单
     private final Menu presetViewMenu = new Menu("预设视角");
+
     @Getter
     private final MenuItem viewFront = new MenuItem("正面");
+
     @Getter
     private final MenuItem viewBack = new MenuItem("背面");
+
     @Getter
     private final MenuItem viewLeft = new MenuItem("左面");
+
     @Getter
     private final MenuItem viewRight = new MenuItem("右面");
+
     @Getter
     private final MenuItem viewTop = new MenuItem("顶部");
+
     @Getter
     private final MenuItem viewBottom = new MenuItem("底部");
 
     // 着色模式 RadioMenuItem 组
     private final ToggleGroup shadingGroup = new ToggleGroup();
+
     @Getter
     private final RadioMenuItem texturedMode = new RadioMenuItem("贴图模式");
+
     @Getter
     private final RadioMenuItem solidMode = new RadioMenuItem("纯色模式");
+
     @Getter
     private final RadioMenuItem wireframeMode = new RadioMenuItem("线框模式");
+
     @Getter
     private final RadioMenuItem overlayMode = new RadioMenuItem("线框叠加");
+
     @Getter
     private final RadioMenuItem normalColorMode = new RadioMenuItem("法线着色");
 
     // 所有菜单引用
     private final List<Menu> menus = new ArrayList<>();
+
     private MenuBar menuBar;
+
     @Getter
     private boolean isDarkTheme = true;
 
     public MenuBar getMenuBar() {
         if (menuBar != null) {
-            return menuBar; // 懒加载：菜单栏只构建一次，避免重复添加菜单项导致异常
+            return menuBar; // 懒加载:菜单栏只构建一次,避免重复添加菜单项导致异常
         }
         menuBar = new MenuBar();
         menuBar.setBackground(new Background(new BackgroundFill(darkGradient, null, null)));
@@ -141,15 +179,16 @@ public class MenuNode {
         normalColorMode.setToggleGroup(shadingGroup);
         texturedMode.setSelected(true);
 
-        set.getItems().addAll(resetView, setBackgroundColor, setupLighting, directionalLightToggle, wireframes, plotsMode, presetViewMenu,
-                new SeparatorMenuItem(), texturedMode, solidMode, wireframeMode, overlayMode, normalColorMode,
-                new SeparatorMenuItem(), orthoToggle, multiViewToggle, boundingBoxToggle, normalToggle, backFaceCullingToggle, modelInfoToggle);
+        set.getItems()
+                .addAll(resetView, setBackgroundColor, setupLighting, directionalLightToggle, wireframes, plotsMode, presetViewMenu,
+                        new SeparatorMenuItem(), texturedMode, solidMode, wireframeMode, overlayMode, normalColorMode,
+                        new SeparatorMenuItem(), orthoToggle, multiViewToggle, boundingBoxToggle, normalToggle, backFaceCullingToggle, modelInfoToggle);
 
         // 添加到菜单栏
         menuBar.getMenus().addAll(file, tools, set, settings);
         menus.addAll(List.of(file, tools, set, settings));
 
-        // 设置每个菜单的显示事件处理，用于处理其下拉菜单样式
+        // 设置每个菜单的显示事件处理,用于处理其下拉菜单样式
 //        menus.forEach(menu -> menu.setOnShowing(event -> updatePopupMenuStyle()));
 
         return menuBar;
@@ -162,7 +201,7 @@ public class MenuNode {
 
     /**
      * 应用主题样式到界面元素
-     * 根据当前主题设置（深色/浅色）更新菜单栏、菜单和菜单项的背景颜色和文字颜色
+     * 根据当前主题设置(深色/浅色)更新菜单栏,菜单和菜单项的背景颜色和文字颜色
      */
     private void applyTheme() {
         menuBar.setBackground(new Background(new BackgroundFill(isDarkTheme ? darkGradient : lightGradient, null, null)));

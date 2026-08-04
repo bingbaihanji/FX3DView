@@ -2,7 +2,12 @@ package com.bingbaihanji.loading;
 
 import javafx.geometry.Point2D;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Data structure builder for Catmull Clark subdivision surface
@@ -10,14 +15,23 @@ import java.util.*;
 public class SymbolicSubdivisionBuilder {
 
     private final SymbolicPolygonMesh oldMesh;
+
     private final SubdivisionMesh.BoundaryMode boundaryMode;
+
     private final SubdivisionMesh.MapBorderMode mapBorderMode;
+
     private Map<Edge, EdgeInfo> edgeInfos;
+
     private FaceInfo[] faceInfos;
+
     private PointInfo[] pointInfos;
+
     private SubdividedPointArray points;
+
     private float[] texCoords;
+
     private int[] reindex;
+
     private int newTexCoordIndex;
 
     public SymbolicSubdivisionBuilder(SymbolicPolygonMesh oldMesh, SubdivisionMesh.BoundaryMode boundaryMode, SubdivisionMesh.MapBorderMode mapBorderMode) {
@@ -264,6 +278,7 @@ public class SymbolicSubdivisionBuilder {
     }
 
     private static class Edge {
+
         int from, to;
 
         public Edge(int from, int to) {
@@ -296,8 +311,11 @@ public class SymbolicSubdivisionBuilder {
     }
 
     private static class EdgeInfo {
+
         Edge edge;
+
         int edgePoint;
+
         List<FaceInfo> faces = new ArrayList<>(2);
 
         /**
@@ -309,10 +327,15 @@ public class SymbolicSubdivisionBuilder {
     }
 
     private static class FaceInfo {
+
         int facePoint;
+
         Point2D texCoord;
+
         int newTexCoordIndex;
+
         Edge[] edges;
+
         Point2D[] edgeTexCoords;
 
         public FaceInfo(int n) {
@@ -322,7 +345,9 @@ public class SymbolicSubdivisionBuilder {
     }
 
     private class PointInfo {
+
         List<FaceInfo> faces = new ArrayList<>(4);
+
         Set<Edge> edges = new HashSet<>(4);
 
         /**

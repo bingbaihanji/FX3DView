@@ -1,6 +1,10 @@
 package com.bingbaihanji;
 
-import com.sun.jna.*;
+import com.sun.jna.Library;
+import com.sun.jna.Memory;
+import com.sun.jna.Native;
+import com.sun.jna.Pointer;
+import com.sun.jna.WString;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.win32.W32APIOptions;
@@ -16,7 +20,9 @@ import java.util.Map;
 public abstract class WindowsThemeJavaFXApp extends Application {
 
     private static final int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+
     private static final int DWMWA_WINDOW_CORNER_PREFERENCE = 33;
+
     private static final int DWMWCP_ROUNDSMALL = 3;
 
     /**
@@ -48,7 +54,7 @@ public abstract class WindowsThemeJavaFXApp extends Application {
         startWindowsThemeUI(primaryStage);
     }
 
-    // 替换默认的 start() 方法，并添加了 applyDarkTitleBar()
+    // 替换默认的 start() 方法,并添加了 applyDarkTitleBar()
     protected abstract void startWindowsThemeUI(Stage primaryStage);
 
     /**
@@ -130,6 +136,7 @@ public abstract class WindowsThemeJavaFXApp extends Application {
     }
 
     public interface Dwmapi extends Library {
+
         Dwmapi INSTANCE = Native.load("dwmapi", Dwmapi.class, W32APIOptions.DEFAULT_OPTIONS);
 
         int DwmSetWindowAttribute(WinDef.HWND hwnd, int attr, Pointer value, int size);

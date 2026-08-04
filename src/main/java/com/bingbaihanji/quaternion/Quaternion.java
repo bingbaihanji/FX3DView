@@ -6,25 +6,25 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Objects;
 
 /**
- * 四元数类，用于表示3D空间中的旋转:  q = w + xi + yj + zk
- * 四元数的数学原理较为复杂（涉及复数），因此不做过多深入讲解。
+ * 四元数类,用于表示3D空间中的旋转:  q = w + xi + yj + zk
+ * 四元数的数学原理较为复杂(涉及复数),因此不做过多深入讲解.
  * <p>
- * 功能特性：
- * - 支持欧拉角转换（XYZ顺序：横滚X -> 俯仰Y -> 偏航Z）
- * - 列主序矩阵格式（兼容 OpenGL / JavaFX Affine）
- * - 完整的四元数运算（乘法、插值、归一化等）
+ * 功能特性:
+ * - 支持欧拉角转换(XYZ顺序:横滚X -> 俯仰Y -> 偏航Z)
+ * - 列主序矩阵格式(兼容 OpenGL / JavaFX Affine)
+ * - 完整的四元数运算(乘法,插值,归一化等)
  * - 优化的缓存机制和数值稳定性处理
  * <p>
- * 设计原则：
+ * 设计原则:
  * - 保持API向后兼容
  * - 自动归一化确保数值稳定性
  * - 懒加载缓存提升性能
  * - 完善的错误处理和边界条件检查
  * <p>
- * 应用场景：需要旋转插值时使用四元数，需要将旋转应用到对象时转换为矩阵。
+ * 应用场景:需要旋转插值时使用四元数,需要将旋转应用到对象时转换为矩阵.
  * <p>
- * 四元数快速入门视频：https://www.youtube.com/watch?v=SCbpxiCN0U0
- * 更详细的讲解视频：https://www.youtube.com/watch?v=fKIss4EV6ME&t=0s
+ * 四元数快速入门视频:https://www.youtube.com/watch?v=SCbpxiCN0U0
+ * 更详细的讲解视频:https://www.youtube.com/watch?v=fKIss4EV6ME&t=0s
  *
  * @author Karl, bingbaihanji
  */
@@ -33,25 +33,30 @@ import java.util.Objects;
 public class Quaternion {
 
     /**
-     * 矩阵维度：4x4
+     * 矩阵维度:4x4
      */
     private static final int MATRIX_4x4 = 4;
+
     /**
-     * 矩阵维度：3x3
+     * 矩阵维度:3x3
      */
     private static final int MATRIX_3x3 = 3;
+
     /**
      * 归一化检查的容差阈值
      */
     private static final double NORMALIZE_CHECKSUM_EPSILON = 1e-5;
+
     /**
      * 向量归一化的容差阈值
      */
     private static final double VECTOR_NORMALIZE_EPSILON = 1e-6;
+
     /**
      * 通用浮点数比较容差
      */
     private static final double EPS = 1e-6;
+
     /**
      * SLERP插值的点积阈值
      */
@@ -65,27 +70,32 @@ public class Quaternion {
      * 四元数虚部 x 分量
      */
     private double x;
+
     /**
      * 四元数虚部 y 分量
      */
     private double y;
+
     /**
      * 四元数虚部 z 分量
      */
     private double z;
+
     /**
      * 四元数实部 w 分量
      */
     private double w;
 
     /**
-     * 旋转矩阵缓存（4x4列主序），null表示缓存失效
+     * 旋转矩阵缓存(4x4列主序),null表示缓存失效
      */
     private double[][] matrixCache4x4 = null;
+
     /**
-     * 旋转矩阵缓存（3x3列主序），null表示缓存失效
+     * 旋转矩阵缓存(3x3列主序),null表示缓存失效
      */
     private double[][] matrixCache3x3 = null;
+
     /**
      * 标记当前四元数是否已归一化
      */
@@ -96,7 +106,7 @@ public class Quaternion {
     // ============================
 
     /**
-     * 默认构造方法，创建单位四元数
+     * 默认构造方法,创建单位四元数
      */
     public Quaternion() {
         setIdentity();
@@ -120,13 +130,13 @@ public class Quaternion {
     }
 
     /**
-     * 通过4x4旋转矩阵创建四元数（二维数组，列主序）
+     * 通过4x4旋转矩阵创建四元数(二维数组,列主序)
      *
-     * @param matrix 4x4列主序旋转矩阵（二维数组）
+     * @param matrix 4x4列主序旋转矩阵(二维数组)
      */
     public Quaternion(double[][] matrix) {
         if (!validateMatrix(matrix, MATRIX_4x4)) {
-            log.warn("输入矩阵为null或维度不足，使用单位四元数");
+            log.warn("输入矩阵为null或维度不足,使用单位四元数");
             setIdentity();
         } else {
             setFromMatrix4x4(matrix);
@@ -134,22 +144,22 @@ public class Quaternion {
     }
 
     /**
-     * 通过3x3旋转矩阵创建四元数（二维数组，列主序）
+     * 通过3x3旋转矩阵创建四元数(二维数组,列主序)
      *
-     * @param matrix 3x3列主序旋转矩阵（二维数组）
+     * @param matrix 3x3列主序旋转矩阵(二维数组)
      * @param is3x3  是否为3x3矩阵
      */
     public Quaternion(double[][] matrix, boolean is3x3) {
         if (is3x3) {
             if (!validateMatrix(matrix, MATRIX_3x3)) {
-                log.warn("输入矩阵为null或维度不足，使用单位四元数");
+                log.warn("输入矩阵为null或维度不足,使用单位四元数");
                 setIdentity();
             } else {
                 setFromMatrix3x3(matrix);
             }
         } else {
             if (!validateMatrix(matrix, MATRIX_4x4)) {
-                log.warn("输入矩阵为null或维度不足，使用单位四元数");
+                log.warn("输入矩阵为null或维度不足,使用单位四元数");
                 setIdentity();
             } else {
                 setFromMatrix4x4(matrix);
@@ -165,11 +175,11 @@ public class Quaternion {
     }
 
     /**
-     * 通过欧拉角创建四元数（XYZ顺序）
+     * 通过欧拉角创建四元数(XYZ顺序)
      *
-     * @param roll  横滚角（绕X轴，弧度）
-     * @param pitch 俯仰角（绕Y轴，弧度）
-     * @param yaw   偏航角（绕Z轴，弧度）
+     * @param roll  横滚角(绕X轴,弧度)
+     * @param pitch 俯仰角(绕Y轴,弧度)
+     * @param yaw   偏航角(绕Z轴,弧度)
      * @return 对应的四元数
      */
     public static Quaternion fromEuler(double roll, double pitch, double yaw) {
@@ -181,7 +191,7 @@ public class Quaternion {
         double cp = Math.cos(hp), sp = Math.sin(hp);
         double cy = Math.cos(hy), sy = Math.sin(hy);
 
-        // 计算四元数分量（XYZ顺序）
+        // 计算四元数分量(XYZ顺序)
         double w = cr * cp * cy + sr * sp * sy;
         double x = sr * cp * cy - cr * sp * sy;
         double y = cr * sp * cy + sr * cp * sy;
@@ -195,10 +205,10 @@ public class Quaternion {
     /**
      * 通过轴角创建四元数
      *
-     * @param axisX    旋转轴X分量（需要已归一化）
-     * @param axisY    旋转轴Y分量（需要已归一化）
-     * @param axisZ    旋转轴Z分量（需要已归一化）
-     * @param angleRad 旋转角度（弧度）
+     * @param axisX    旋转轴X分量(需要已归一化)
+     * @param axisY    旋转轴Y分量(需要已归一化)
+     * @param axisZ    旋转轴Z分量(需要已归一化)
+     * @param angleRad 旋转角度(弧度)
      * @return 对应的四元数
      */
     public static Quaternion fromAxisAngle(double axisX, double axisY, double axisZ, double angleRad) {
@@ -217,10 +227,10 @@ public class Quaternion {
     }
 
     /**
-     * 从4x4列主序矩阵创建四元数（二维数组）
+     * 从4x4列主序矩阵创建四元数(二维数组)
      *
-     * @param matrix 4x4列主序旋转矩阵（二维数组）
-     * @return 对应的四元数，失败返回null
+     * @param matrix 4x4列主序旋转矩阵(二维数组)
+     * @return 对应的四元数,失败返回null
      */
     public static Quaternion fromMatrix(double[][] matrix) {
         if (!validateMatrix(matrix, MATRIX_4x4)) {
@@ -231,10 +241,10 @@ public class Quaternion {
     }
 
     /**
-     * 从3x3列主序矩阵创建四元数（二维数组）
+     * 从3x3列主序矩阵创建四元数(二维数组)
      *
-     * @param matrix 3x3列主序旋转矩阵（二维数组）
-     * @return 对应的四元数，失败返回null
+     * @param matrix 3x3列主序旋转矩阵(二维数组)
+     * @return 对应的四元数,失败返回null
      */
     public static Quaternion fromMatrix3x3(double[][] matrix) {
         if (!validateMatrix(matrix, MATRIX_3x3)) {
@@ -271,12 +281,12 @@ public class Quaternion {
     }
 
     /**
-     * 四元数乘法：q = q1 × q2
-     * 注意：在列主序和列向量约定下，表示先应用q2旋转，再应用q1旋转
+     * 四元数乘法:q = q1 × q2
+     * 注意:在列主序和列向量约定下,表示先应用q2旋转,再应用q1旋转
      */
     public static Quaternion multiply(Quaternion q1, Quaternion q2) {
         if (q1 == null || q2 == null) {
-            log.warn("四元数乘法参数为null，返回单位四元数");
+            log.warn("四元数乘法参数为null,返回单位四元数");
             return new Quaternion();
         }
 
@@ -293,7 +303,7 @@ public class Quaternion {
     }
 
     /**
-     * 四元数乘法（原地结果，避免分配新对象）：result = q1 × q2
+     * 四元数乘法(原地结果,避免分配新对象):result = q1 × q2
      */
     public static void multiply(Quaternion q1, Quaternion q2, Quaternion result) {
         if (q1 == null || q2 == null || result == null) {
@@ -323,7 +333,7 @@ public class Quaternion {
     }
 
     /**
-     * NLERP归一化线性插值（原地操作）
+     * NLERP归一化线性插值(原地操作)
      *
      * @param result 存储结果的四元数
      * @param a      起始四元数
@@ -365,7 +375,7 @@ public class Quaternion {
      */
     public static Quaternion slerp(Quaternion a, Quaternion b, double t) {
         if (a == null || b == null) {
-            log.warn("SLERP参数为null，返回单位四元数");
+            log.warn("SLERP参数为null,返回单位四元数");
             return new Quaternion();
         }
 
@@ -378,7 +388,7 @@ public class Quaternion {
             dotProduct = -dotProduct;
         }
 
-        // 如果角度很小，使用NLERP（数值稳定性）
+        // 如果角度很小,使用NLERP(数值稳定性)
         if (dotProduct > SLERP_DOT_THRESHOLD) {
             return nlerp(a, bAdjusted, t);
         }
@@ -419,7 +429,7 @@ public class Quaternion {
     // ============================
 
     /**
-     * 创建4x4单位矩阵（列主序）
+     * 创建4x4单位矩阵(列主序)
      */
     public static double[][] createIdentityMatrix4x4() {
         double[][] matrix = new double[4][4];
@@ -428,7 +438,7 @@ public class Quaternion {
     }
 
     /**
-     * 创建3x3单位矩阵（列主序）
+     * 创建3x3单位矩阵(列主序)
      */
     public static double[][] createIdentityMatrix3x3() {
         double[][] matrix = new double[3][3];
@@ -437,7 +447,7 @@ public class Quaternion {
     }
 
     /**
-     * 设置4x4单位矩阵（列主序）
+     * 设置4x4单位矩阵(列主序)
      */
     public static void setIdentityMatrix4x4(double[][] m) {
         if (!validateMatrix(m, MATRIX_4x4)) {
@@ -455,7 +465,7 @@ public class Quaternion {
     }
 
     /**
-     * 设置3x3单位矩阵（列主序）
+     * 设置3x3单位矩阵(列主序)
      */
     public static void setIdentityMatrix3x3(double[][] m) {
         if (!validateMatrix(m, MATRIX_3x3)) {
@@ -472,7 +482,7 @@ public class Quaternion {
     }
 
     /**
-     * 归一化3D向量（原地操作）
+     * 归一化3D向量(原地操作)
      */
     public static void normalizeVector(double[] vector) {
         if (vector == null || vector.length < 3) {
@@ -481,7 +491,7 @@ public class Quaternion {
         }
         double length = vectorLength(vector);
         if (length <= EPS) {
-            log.warn("向量长度为零，无法归一化");
+            log.warn("向量长度为零,无法归一化");
             return;
         }
         vector[0] /= length;
@@ -507,11 +517,11 @@ public class Quaternion {
     }
 
     // ============================
-    // 矩阵到四元数转换（数值稳定版本）
+    // 矩阵到四元数转换(数值稳定版本)
     // ============================
 
     /**
-     * 从4x4列主序矩阵创建四元数（稳定算法，内部方法）
+     * 从4x4列主序矩阵创建四元数(稳定算法,内部方法)
      */
     private static Quaternion fromMatrix4x4Internal(double[][] matrix) {
         if (!validateMatrix(matrix, MATRIX_4x4)) {
@@ -519,7 +529,7 @@ public class Quaternion {
             return null;
         }
 
-        // 提取3x3旋转部分（列主序）
+        // 提取3x3旋转部分(列主序)
         double m00 = matrix[0][0], m01 = matrix[0][1], m02 = matrix[0][2];
         double m10 = matrix[1][0], m11 = matrix[1][1], m12 = matrix[1][2];
         double m20 = matrix[2][0], m21 = matrix[2][1], m22 = matrix[2][2];
@@ -554,7 +564,7 @@ public class Quaternion {
             q.z = 0.25 * s;
         }
 
-        // 归一化并确保符号稳定（w >= 0）
+        // 归一化并确保符号稳定(w >= 0)
         q.normalize();
         if (q.w < 0.0) {
             q.x = -q.x;
@@ -571,7 +581,7 @@ public class Quaternion {
     }
 
     /**
-     * 从3x3列主序矩阵创建四元数（内部方法）
+     * 从3x3列主序矩阵创建四元数(内部方法)
      */
     private static Quaternion fromMatrix3x3Internal(double[][] matrix) {
         if (!validateMatrix(matrix, MATRIX_3x3)) {
@@ -685,7 +695,7 @@ public class Quaternion {
     }
 
     /**
-     * 使缓存失效（当四元数改变时调用）
+     * 使缓存失效(当四元数改变时调用)
      */
     private void invalidateCache() {
         this.matrixCache4x4 = null;
@@ -717,7 +727,7 @@ public class Quaternion {
     }
 
     /**
-     * 归一化当前四元数（原地操作）
+     * 归一化当前四元数(原地操作)
      *
      * @return this 用于链式调用
      */
@@ -728,7 +738,7 @@ public class Quaternion {
 
         double normSquared = x * x + y * y + z * z + w * w;
 
-        // 检查是否已经是单位四元数（在容差范围内）
+        // 检查是否已经是单位四元数(在容差范围内)
         if (Math.abs(normSquared - 1.0) < NORMALIZE_CHECKSUM_EPSILON) {
             normalized = true;
             return this;
@@ -736,8 +746,8 @@ public class Quaternion {
 
         double norm = Math.sqrt(normSquared);
         if (norm <= EPS) {
-            // 模长为零，设置为单位四元数
-            log.warn("四元数模长为零，设置为单位四元数");
+            // 模长为零,设置为单位四元数
+            log.warn("四元数模长为零,设置为单位四元数");
             setIdentity();
             return this;
         }
@@ -756,7 +766,7 @@ public class Quaternion {
     }
 
     /**
-     * 返回归一化后的副本（不修改原对象）
+     * 返回归一化后的副本(不修改原对象)
      */
     public Quaternion normalizedCopy() {
         Quaternion copy = new Quaternion(x, y, z, w);
@@ -782,11 +792,11 @@ public class Quaternion {
         double normSquared = x * x + y * y + z * z + w * w;
 
         if (Math.abs(normSquared) < EPS) {
-            log.warn("四元数模长为零，无法求逆，返回单位四元数");
+            log.warn("四元数模长为零,无法求逆,返回单位四元数");
             return new Quaternion();
         }
 
-        // 如果是单位四元数，逆等于共轭
+        // 如果是单位四元数,逆等于共轭
         if (Math.abs(normSquared - 1.0) < NORMALIZE_CHECKSUM_EPSILON) {
             return getConjugate();
         } else {
@@ -801,7 +811,7 @@ public class Quaternion {
     // ============================
 
     /**
-     * 左乘：this = q × this
+     * 左乘:this = q × this
      */
     public void leftMultiply(Quaternion q) {
         Quaternion result = multiply(q, this);
@@ -810,7 +820,7 @@ public class Quaternion {
     }
 
     /**
-     * 右乘：this = this × q
+     * 右乘:this = this × q
      */
     public void rightMultiply(Quaternion q) {
         Quaternion result = multiply(this, q);
@@ -819,7 +829,7 @@ public class Quaternion {
     }
 
     /**
-     * 获取列主序4x4旋转矩阵（懒加载缓存）
+     * 获取列主序4x4旋转矩阵(懒加载缓存)
      */
     public double[][] getMatrix4x4() {
         if (matrixCache4x4 == null) {
@@ -829,7 +839,7 @@ public class Quaternion {
     }
 
     /**
-     * 获取列主序3x3旋转矩阵（懒加载缓存）
+     * 获取列主序3x3旋转矩阵(懒加载缓存)
      */
     public double[][] getMatrix3x3() {
         if (matrixCache3x3 == null) {
@@ -857,14 +867,14 @@ public class Quaternion {
     /**
      * 将四元数转换为列主序4x4旋转矩阵
      *
-     * @param m 目标数组（如为null则新建）
+     * @param m 目标数组(如为null则新建)
      * @return 4x4列主序旋转矩阵
      */
     public double[][] toRotationMatrix4x4(double[][] m) {
         double[][] result = (m == null || !validateMatrix(m, MATRIX_4x4)) ?
                 new double[4][4] : m;
 
-        // 如果是单位四元数，直接返回单位矩阵
+        // 如果是单位四元数,直接返回单位矩阵
         if (isIdentity()) {
             setIdentityMatrix4x4(result);
             matrixCache4x4 = result;
@@ -879,7 +889,7 @@ public class Quaternion {
         double xy = x * y, xz = x * z, yz = y * z;
         double wx = w * x, wy = w * y, wz = w * z;
 
-        // 列主序填充（OpenGL/JFX格式）
+        // 列主序填充(OpenGL/JFX格式)
         result[0][0] = 1.0 - 2.0 * (yy + zz); // m00
         result[1][0] = 2.0 * (xy + wz);        // m10
         result[2][0] = 2.0 * (xz - wy);        // m20
@@ -895,7 +905,7 @@ public class Quaternion {
         result[2][2] = 1.0 - 2.0 * (xx + yy);  // m22
         result[3][2] = 0.0;                    // m32
 
-        // 第四列（平移部分，保持为单位矩阵）
+        // 第四列(平移部分,保持为单位矩阵)
         result[0][3] = 0.0;
         result[1][3] = 0.0;
         result[2][3] = 0.0;
@@ -910,7 +920,7 @@ public class Quaternion {
     /**
      * 将四元数转换为列主序3x3旋转矩阵
      *
-     * @param m 目标数组（如为null则新建）
+     * @param m 目标数组(如为null则新建)
      * @return 3x3列主序旋转矩阵
      */
     public double[][] toRotationMatrix3x3(double[][] m) {
@@ -963,7 +973,7 @@ public class Quaternion {
     }
 
     /**
-     * 从4x4矩阵设置四元数（内部方法）
+     * 从4x4矩阵设置四元数(内部方法)
      */
     private void setFromMatrix4x4(double[][] matrix) {
         Quaternion q = fromMatrix4x4Internal(matrix);
@@ -976,13 +986,13 @@ public class Quaternion {
             this.matrixCache4x4 = q.matrixCache4x4;
             this.matrixCache3x3 = q.matrixCache3x3;
         } else {
-            log.warn("矩阵转换四元数失败，使用单位四元数");
+            log.warn("矩阵转换四元数失败,使用单位四元数");
             setIdentity();
         }
     }
 
     /**
-     * 从3x3矩阵设置四元数（内部方法）
+     * 从3x3矩阵设置四元数(内部方法)
      */
     private void setFromMatrix3x3(double[][] matrix) {
         Quaternion q = fromMatrix3x3Internal(matrix);
@@ -995,7 +1005,7 @@ public class Quaternion {
             this.matrixCache4x4 = q.matrixCache4x4;
             this.matrixCache3x3 = q.matrixCache3x3;
         } else {
-            log.warn("矩阵转换四元数失败，使用单位四元数");
+            log.warn("矩阵转换四元数失败,使用单位四元数");
             setIdentity();
         }
     }
@@ -1005,10 +1015,10 @@ public class Quaternion {
     // ============================
 
     /**
-     * 转换为欧拉角（XYZ顺序，返回角度制）
+     * 转换为欧拉角(XYZ顺序,返回角度制)
      *
-     * @param dest 目标数组（如为null则新建）
-     * @return 欧拉角数组 [横滚, 俯仰, 偏航]（角度）
+     * @param dest 目标数组(如为null则新建)
+     * @return 欧拉角数组 [横滚, 俯仰, 偏航](角度)
      */
     public double[] toAngles(double[] dest) {
         if (dest == null) {
@@ -1022,12 +1032,12 @@ public class Quaternion {
 
         normalize();
 
-        // 计算横滚角（绕X轴）
+        // 计算横滚角(绕X轴)
         double sinRoll = 2.0 * (w * x + y * z);
         double cosRoll = 1.0 - 2.0 * (x * x + y * y);
         double roll = Math.atan2(sinRoll, cosRoll);
 
-        // 计算俯仰角（绕Y轴），处理万向节锁奇异性
+        // 计算俯仰角(绕Y轴),处理万向节锁奇异性
         double sinPitch = 2.0 * (w * y - z * x);
         double pitch;
         if (Math.abs(sinPitch) >= 1.0) {
@@ -1036,7 +1046,7 @@ public class Quaternion {
             pitch = Math.asin(sinPitch);
         }
 
-        // 计算偏航角（绕Z轴）
+        // 计算偏航角(绕Z轴)
         double sinYaw = 2.0 * (w * z + x * y);
         double cosYaw = 1.0 - 2.0 * (y * y + z * z);
         double yaw = Math.atan2(sinYaw, cosYaw);
@@ -1089,7 +1099,7 @@ public class Quaternion {
 
         Quaternion other = (Quaternion) obj;
 
-        // 检查是否是相同的四元数（考虑到四元数 q 和 -q 表示相同的旋转）
+        // 检查是否是相同的四元数(考虑到四元数 q 和 -q 表示相同的旋转)
         boolean directMatch = approxEquals(this, other, 0.001);
         boolean inverseMatch = approxEquals(this, new Quaternion(-other.x, -other.y, -other.z, -other.w), 0.001);
 
@@ -1110,7 +1120,7 @@ public class Quaternion {
         int negYHash = (int) Math.round(-y / precision);
         int negZHash = (int) Math.round(-z / precision);
         int negWHash = (int) Math.round(-w / precision);
-        // 返回较小hashCode的那一组，确保q和-q有相同的hashCode
+        // 返回较小hashCode的那一组,确保q和-q有相同的hashCode
         if (xHash + yHash + zHash + wHash <= negXHash + negYHash + negZHash + negWHash) {
             return Objects.hash(xHash, yHash, zHash, wHash);
         } else {
@@ -1119,7 +1129,7 @@ public class Quaternion {
     }
 
     /**
-     * 检查两个四元数是否表示相同的旋转（考虑精度误差）
+     * 检查两个四元数是否表示相同的旋转(考虑精度误差)
      */
     public boolean isSameRotation(Quaternion other, double epsilon) {
         if (other == null) {
@@ -1130,7 +1140,7 @@ public class Quaternion {
     }
 
     /**
-     * 检查是否近似等于另一个四元数（使用默认精度0.001）
+     * 检查是否近似等于另一个四元数(使用默认精度0.001)
      */
     public boolean approxEquals(Quaternion other) {
         return isSameRotation(other, 0.001);

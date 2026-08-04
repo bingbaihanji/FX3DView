@@ -5,7 +5,11 @@ import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.PointLight;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ColorPicker;
+import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
+import javafx.scene.control.Slider;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
@@ -13,21 +17,27 @@ import javafx.scene.shape.Sphere;
 import javafx.stage.Stage;
 
 /**
- * 方向光管理器：通过PointLight + 球形坐标控制光源位置
+ * 方向光管理器:通过PointLight + 球形坐标控制光源位置
  */
 public class LightManager {
 
     private final PointLight pointLight;
+
     /**
-     * 标记球专属光源（scope 限定只照亮标记球，不受主灯光开关影响）
+     * 标记球专属光源(scope 限定只照亮标记球,不受主灯光开关影响)
      */
     private final PointLight markerLight;
+
     private final Sphere lightMarker; // 可视化光源位置的小球
+
     private final Group world;
 
-    private double azimuth = 45;   // 水平角（度）
-    private double elevation = 30; // 仰角（度）
+    private double azimuth = 45;   // 水平角(度)
+
+    private double elevation = 30; // 仰角(度)
+
     private double distance = 100;
+
     private Color lightColor = Color.WHITE;
 
     private Stage controlDialog;
@@ -47,7 +57,7 @@ public class LightManager {
         lightMarker.setMaterial(markerMat);
         lightMarker.setVisible(false); // 默认隐藏光源标记球
 
-        // 标记球专属光源：scope 限定只照亮标记球自身，不受场景主灯光开关影响
+        // 标记球专属光源:scope 限定只照亮标记球自身,不受场景主灯光开关影响
         markerLight = new PointLight(lightColor);
         markerLight.getScope().add(lightMarker);
         markerLight.setVisible(false); // 随标记球一起显隐
@@ -64,7 +74,7 @@ public class LightManager {
     }
 
     public void openControlDialog() {
-        // JavaFX 单线程模型下无需同步，简单判空即可
+        // JavaFX 单线程模型下无需同步,简单判空即可
         if (controlDialog != null && controlDialog.isShowing()) {
             controlDialog.toFront();
             return;
@@ -123,7 +133,7 @@ public class LightManager {
         distSlider.valueProperty().addListener((o, ov, nv) -> update.run());
         colorPicker.valueProperty().addListener((o, ov, nv) -> update.run());
 
-        // 光源标记球开关（同时控制标记球及其专属光源的显隐）
+        // 光源标记球开关(同时控制标记球及其专属光源的显隐)
         showMarkerCb.selectedProperty().addListener((o, ov, visible) -> {
             lightMarker.setVisible(visible);
             markerLight.setVisible(visible);
@@ -167,7 +177,7 @@ public class LightManager {
     }
 
     private void updateLightIntensity() {
-        // 根据距离调整颜色亮度（远处更暗，近处更亮）
+        // 根据距离调整颜色亮度(远处更暗,近处更亮)
         double factor = Math.max(0.3, Math.min(3.0, 200.0 / distance));
         Color adjusted = lightColor.deriveColor(0, 1, factor, 1);
         pointLight.setColor(adjusted);
@@ -177,7 +187,7 @@ public class LightManager {
             mat.setDiffuseColor(lightColor);
         }
 
-        // 同步更新标记球专属光源颜色（不受距离衰减影响，保持标记球颜色鲜明）
+        // 同步更新标记球专属光源颜色(不受距离衰减影响,保持标记球颜色鲜明)
         markerLight.setColor(lightColor);
     }
 

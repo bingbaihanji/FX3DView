@@ -17,9 +17,9 @@ import com.bingbaihanji.ui.StatusBar;
 import com.bingbaihanji.view.ViewingAxes;
 
 /**
- * 核心组件持有类，避免 Fx3DViewerApp 中字段过多和方法过长
+ * 核心组件持有类,避免 Fx3DViewerApp 中字段过多和方法过长
  * <p>
- * 将启动时创建的所有核心组件聚合成一个对象，便于在拆分的各个方法间传递
+ * 将启动时创建的所有核心组件聚合成一个对象,便于在拆分的各个方法间传递
  * </p>
  *
  * @author bingbaihanji
@@ -27,18 +27,32 @@ import com.bingbaihanji.view.ViewingAxes;
 class ViewerComponents {
 
     Scene3DManager sceneManager;
+
     CameraSystem cameraSystem;
+
     ViewingAxes viewingAxes;
+
     PickingController pickingController;
+
     MouseInteraction mouseInteraction;
+
     KeyboardInteraction keyboardInteraction;
+
     MainLayout mainLayout;
+
     MenuEvent menuEvent;
+
     LightManager lightManager;
+
     StatusBar statusBar;
+
     ModelInfoPanel modelInfoPanel;
+
     MenuNode menuNode;
+
     DragDropHandler dragDrop;
+
     ImporterRegistry importerRegistry;
+
     ModelLoadService modelLoadService;
 }

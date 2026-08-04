@@ -8,8 +8,8 @@ import javafx.scene.transform.Affine;
 /**
  * 3D场景管理器
  * <p>
- * 管理3D场景图的层次结构，包括：
- * - root: 根节点（包含viewing旋转变换）
+ * 管理3D场景图的层次结构,包括:
+ * - root: 根节点(包含viewing旋转变换)
  * - world: 世界坐标系
  * - axisGroup: 坐标轴组
  * - moleculeGroup: 模型组
@@ -70,14 +70,14 @@ public class Scene3DManager {
 
         world.getChildren().add(moleculeGroup);
 
-        // 构建包围盒（初始为空，模型加载后重建）
+        // 构建包围盒(初始为空,模型加载后重建)
         boundingBoxGroup = new Group();
         boundingBoxGroup.setId("boundingBox");
         boundingBoxGroup.setVisible(false);
         world.getChildren().add(boundingBoxGroup);
 
-        // 构建法线可视化组（初始为空，模型加载后重建）
-        // 放在 moleculeGroup 内，确保法线与模型共享同一坐标空间
+        // 构建法线可视化组(初始为空,模型加载后重建)
+        // 放在 moleculeGroup 内,确保法线与模型共享同一坐标空间
         normalGroup = new Group();
         normalGroup.setId("normalLines");
         normalGroup.setVisible(false);
@@ -125,8 +125,8 @@ public class Scene3DManager {
     /**
      * 清空加载的模型
      * <p>
-     * 清空 moleculeGroup 中的所有模型节点（保留 normalGroup），
-     * 清空包围盒，并隐藏法线可视化。
+     * 清空 moleculeGroup 中的所有模型节点(保留 normalGroup),
+     * 清空包围盒,并隐藏法线可视化.
      * </p>
      */
     public void clearModel() {
@@ -139,13 +139,13 @@ public class Scene3DManager {
     /**
      * 重建法线可视化
      * <p>
-     * 法线组放在 moleculeGroup 内，确保与模型共享同一坐标空间。
-     * 模型加载时 moleculeGroup 子节点会被清空，重建后需重新添加 normalGroup。
+     * 法线组放在 moleculeGroup 内,确保与模型共享同一坐标空间.
+     * 模型加载时 moleculeGroup 子节点会被清空,重建后需重新添加 normalGroup.
      * </p>
      */
     public void rebuildNormals() {
         NormalVisualizer.buildNormalLines(moleculeGroup, normalGroup);
-        // 模型加载后 moleculeGroup 子节点被清空，需重新添加（放在最后以保证渲染顺序正确）
+        // 模型加载后 moleculeGroup 子节点被清空,需重新添加(放在最后以保证渲染顺序正确)
         if (!moleculeGroup.getChildren().contains(normalGroup)) {
             moleculeGroup.getChildren().add(normalGroup);
         }

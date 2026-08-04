@@ -12,15 +12,20 @@ import javafx.scene.shape.MeshView;
 import javafx.scene.shape.TriangleMesh;
 
 /**
- * 模型信息面板：显示已加载模型的详细统计信息
+ * 模型信息面板:显示已加载模型的详细统计信息
  */
 public class ModelInfoPanel extends VBox {
 
     private final Label titleLabel = new Label("模型信息");
+
     private final Label fileNameLabel = new Label("未加载模型");
+
     private final Label vertexLabel = new Label("顶点: --");
+
     private final Label faceLabel = new Label("面: --");
+
     private final Label sizeLabel = new Label("尺寸: --");
+
     private final Label materialLabel = new Label("材质: --");
 
     private boolean isDark = true;

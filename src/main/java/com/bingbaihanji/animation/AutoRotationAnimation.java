@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * 自动旋转动画
  * <p>
- * 提供连续的自动旋转功能，绕Y轴旋转
+ * 提供连续的自动旋转功能,绕Y轴旋转
  * </p>
  *
  * @author bingbaihanji
@@ -19,11 +19,15 @@ import lombok.extern.slf4j.Slf4j;
 public class AutoRotationAnimation implements Lifecycle {
 
     private final CameraSystem cameraSystem;
+
     private final ViewingAxes viewingAxes;
+
     private final AnimationTimer timer;
+
     private volatile boolean isRunning = false;
+
     /**
-     * 上一帧时间戳（纳秒），用于计算真实帧间隔
+     * 上一帧时间戳(纳秒),用于计算真实帧间隔
      */
     private volatile long lastNow = 0;
 
@@ -37,13 +41,14 @@ public class AutoRotationAnimation implements Lifecycle {
         this.cameraSystem = cameraSystem;
         this.viewingAxes = viewingAxes;
         this.timer = new AnimationTimer() {
+
             @Override
             public void handle(long now) {
                 if (lastNow == 0) {
                     lastNow = now;
                     return;
                 }
-                // 基于实际帧间隔计算旋转角度，适配不同刷新率（60/120/144Hz）
+                // 基于实际帧间隔计算旋转角度,适配不同刷新率(60/120/144Hz)
                 double deltaSeconds = (now - lastNow) / 1_000_000_000.0;
                 lastNow = now;
                 double angleRad = -Math.toRadians(InteractionConfig.AUTO_ROTATION_SPEED * deltaSeconds);
@@ -68,7 +73,7 @@ public class AutoRotationAnimation implements Lifecycle {
     public void toggle() {
         isRunning = !isRunning;
         if (isRunning) {
-            lastNow = 0; // 重置时间戳，避免首帧出现累积延迟
+            lastNow = 0; // 重置时间戳,避免首帧出现累积延迟
             timer.start();
             log.info("自动旋转已开启");
         } else {

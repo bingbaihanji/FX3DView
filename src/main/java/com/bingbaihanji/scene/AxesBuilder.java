@@ -8,7 +8,7 @@ import javafx.scene.shape.Box;
 /**
  * 坐标轴构建器
  * <p>
- * 负责创建和配置3D坐标轴（X/Y/Z轴）
+ * 负责创建和配置3D坐标轴(X/Y/Z轴)
  * </p>
  *
  * @author bingbaihanji
@@ -26,7 +26,7 @@ public final class AxesBuilder {
     private static final double AXIS_THICKNESS = 0.1;
 
     /**
-     * 私有构造函数，防止实例化
+     * 私有构造函数,防止实例化
      */
     private AxesBuilder() {
         throw new AssertionError("工具类不应该被实例化");
